@@ -1,34 +1,10 @@
-import client from "@/lib/mongodb";
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 
-type ConnectionStatus = {
-  isConnected: boolean;
-};
-
 const inter = Inter({ subsets: ["latin"] });
 
-export const getServerSideProps: GetServerSideProps<
-  ConnectionStatus
-> = async () => {
-  try {
-    await client.connect(); // `await client.connect()` will use the default database passed in the MONGODB_URI
-    return {
-      props: { isConnected: true },
-    };
-  } catch (e) {
-    console.error(e);
-    return {
-      props: { isConnected: false },
-    };
-  }
-};
-
-export default function Home({
-  isConnected,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Login() {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background Image */}
@@ -79,21 +55,48 @@ export default function Home({
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white">
-        <h1 className="text-5xl font-bold mb-4">Welcome to UTA Housing</h1>
-        <p className="text-xl mb-8">Find your perfect home near campus</p>
-        <Link href="/explore">
-          <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300">
-            Explore Listings
+      {/* Login Form */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-8 bg-black/30 backdrop-blur-sm rounded-lg shadow-lg text-white">
+        <h2 className="text-3xl font-bold mb-6 text-center">Log In</h2>
+        <form>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              className="w-full px-4 py-2 bg-black/20 border border-white/30 rounded focus:outline-none focus:border-orange-500"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-medium mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              className="w-full px-4 py-2 bg-black/20 border border-white/30 rounded focus:outline-none focus:border-orange-500"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300"
+          >
+            Log In
           </button>
-        </Link>
+        </form>
+        <p className="mt-4 text-center">
+          Don't have an account?{" "}
+          <Link href="/signup" className="text-orange-500 hover:underline">
+            Sign Up
+          </Link>
+        </p>
       </div>
-
-      {/* Footer */}
-      <footer className="absolute bottom-0 left-0 w-full p-4 bg-black/30 text-white text-center">
-        <p>&copy; 2023 UTA Housing. All rights reserved.</p>
-      </footer>
     </div>
   );
 }
