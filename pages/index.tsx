@@ -1,99 +1,93 @@
-import client from "@/lib/mongodb";
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { Inter } from "next/font/google";
-import Image from "next/image";
-import Link from "next/link";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import Navbar from "./components/Navbar";
 
-type ConnectionStatus = {
-  isConnected: boolean;
-};
+const Index = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // No need to use useToaster, use toast directly
 
-const inter = Inter({ subsets: ["latin"] });
+  // Preload image
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/Assets/uta_housing.jpeg";
+  }, []);
 
-export const getServerSideProps: GetServerSideProps<
-  ConnectionStatus
-> = async () => {
-  try {
-    await client.connect(); // `await client.connect()` will use the default database passed in the MONGODB_URI
-    return {
-      props: { isConnected: true },
-    };
-  } catch (e) {
-    console.error(e);
-    return {
-      props: { isConnected: false },
-    };
-  }
-};
-
-export default function Home({
-  isConnected,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/Assets/uta_housing.jpeg" // Ensure this image exists in the public/Assets folder
-          alt="UTA Housing"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-        <div className="absolute inset-0 bg-black/40"></div> {/* Overlay for better text visibility */}
-      </div>
+    <div className="relative w-full h-screen overflow-hidden bg-[#1A1F2C]">
+      <Navbar setIsMenuOpen={setIsMenuOpen} />
 
-      {/* Navbar */}
-      <nav className="absolute top-0 left-0 w-full flex justify-between items-center p-6 bg-black/30 backdrop-blur-sm">
-        {/* Logo */}
-        <div className="flex items-center gap-2 text-xl font-bold text-white">
-          <Image src="/Assets/uta_logo.png" alt="UTA Logo" width={50} height={50} />
-          <span>UTA Housing</span>
+      {/* Main Content with Backdrop Blur */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: 1,
+          filter: isMenuOpen ? "blur(8px)" : "blur(0px)",
+        }}
+        transition={{ duration: 0.5 }}
+        className="absolute inset-0"
+      >
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40 z-10" />
+          <img
+            src="/Assets/uta_housing.jpeg"
+            alt="UTA Housing"
+            className="w-full h-full object-cover"
+            loading="eager"
+          />
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex gap-6">
-          <Link href="/" className="text-white hover:text-orange-500 transition duration-300">
-            Home
-          </Link>
-          <Link href="/about" className="text-white hover:text-orange-500 transition duration-300">
-            About
-          </Link>
-          <Link href="/contact" className="text-white hover:text-orange-500 transition duration-300">
-            Contact
-          </Link>
+        {/* Hero Content */}
+        <div className="relative z-20 h-full flex flex-col items-center justify-center px-4">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center"
+          >
+            <span className="inline-block px-4 py-1.5 mb-6 text-sm font-medium text-white/90 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+              Student Housing Made Simple
+            </span>
+            
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight"
+            >
+              Welcome to UTA Housing
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto"
+            >
+              Find your perfect home near campus with our curated selection of student accommodations
+            </motion.p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <button 
+                onClick={() => {
+                  window.location.href = "./components/explore";
+                  toast("Exploring listings... Loading available properties near UTA");
+                }}
+                className="px-8 py-4 bg-orange-500 text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              >
+                Explore Listings
+              </button>
+            </motion.div>
+          </motion.div>
         </div>
-
-        {/* Auth Buttons */}
-        <div className="flex gap-4">
-          <Link href="/login">
-            <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300">
-              Log In
-            </button>
-          </Link>
-          <Link href="/signup">
-            <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
-              Sign Up
-            </button>
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white">
-        <h1 className="text-5xl font-bold mb-4">Welcome to UTA Housing</h1>
-        <p className="text-xl mb-8">Find your perfect home near campus</p>
-        <Link href="/explore">
-          <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300">
-            Explore Listings
-          </button>
-        </Link>
-      </div>
-
-      {/* Footer */}
-      <footer className="absolute bottom-0 left-0 w-full p-4 bg-black/30 text-white text-center">
-        <p>&copy; 2023 UTA Housing. All rights reserved.</p>
-      </footer>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default Index;

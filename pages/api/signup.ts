@@ -1,5 +1,6 @@
 // pages/api/signup.ts
 import clientPromise from "@/lib/mongodb";
+import bcrypt from "bcrypt";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -15,6 +16,9 @@ export default async function handler(
         return res.status(400).json({ message: "All fields are required" });
       }
 
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+
       // Connect to MongoDB
       const client = await clientPromise;
       const db = client.db("uta-housing"); // Replace with your database name
@@ -29,7 +33,7 @@ export default async function handler(
       await db.collection("users").insertOne({
         name,
         email,
-        password, // In a real app, hash the password before saving!
+        password: hashedPassword, // Save the hashed password
         createdAt: new Date(),
       });
 

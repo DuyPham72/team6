@@ -1,83 +1,100 @@
-import { Inter } from "next/font/google";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-
-const inter = Inter({ subsets: ["latin"] });
+import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import { useRouter } from "next/router"; // Use Next.js's useRouter for routing
+import { useEffect, useState } from "react"; // Use useEffect for client-side operations
+import toast from "react-hot-toast"; // Ensure react-hot-toast is imported correctly
 
 export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const router = useRouter();  // Initialize the router hook
+
+  // Preload image using useEffect (only on client-side)
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/Assets/uta_housing.jpeg"; // Preload image for performance
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate email domain
+    if (!email.endsWith("@mavs.uta.edu")) {
+      toast.error("Only mavs.uta.edu emails are allowed.");
+      return;
+    }
+
+    // Validate password length
+    if (password.length <= 6) {
+      toast.error("Password must be longer than 6 characters.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
+    
       if (response.ok) {
-        setMessage("Sign-up successful! Redirecting to login...");
-        // Redirect to login page after 2 seconds
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 2000);
+        toast.success("Sign-up successful! Redirecting to login...");
+        setTimeout(() => router.push("/login"), 2000); // Use router.push() for navigation
       } else {
-        setMessage(data.message || "Something went wrong");
+        toast.error(data.message || "Sign-up failed. Please try again.");
       }
     } catch (error) {
-      setMessage("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     }
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/Assets/uta_housing.jpeg"
-          alt="UTA Housing"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-        <div className="absolute inset-0 bg-black/40"></div>
-      </div>
+    <div className="relative min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/Assets/uta_housing.jpeg')" }}>
+      <motion.button
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        onClick={() => router.push("/")}  // Use router.push() for navigation
+        className="absolute top-6 right-6 z-50 p-2 rounded-full bg-black/20 backdrop-blur-sm border border-white/10 text-white hover:bg-black/30 transition-all duration-300"
+      >
+        <X className="w-6 h-6" />
+      </motion.button>
 
-      {/* Navbar */}
-      <nav className="absolute top-0 left-0 w-full flex justify-between items-center p-6 bg-black/30 backdrop-blur-sm">
-        <div className="flex items-center gap-2 text-xl font-bold text-white">
-          <Image src="/Assets/uta_logo.png" alt="UTA Logo" width={50} height={50} />
-          <span>UTA Housing</span>
-        </div>
-        <div className="flex gap-4">
-          <Link href="/login">
-            <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300">
-              Log In
-            </button>
-          </Link>
-          <Link href="/signup">
-            <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
-              Sign Up
-            </button>
-          </Link>
-        </div>
-      </nav>
+      {/* Sign Up Form Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="relative w-full max-w-md mx-4 p-8 sm:p-10 bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl text-white z-20"
+      >
+        {/* Form Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-2 text-orange-400">
+            Create Account
+          </h2>
+          <p className="text-white/60 text-center mb-8">
+            Join UTA Housing to find your perfect home
+          </p>
+        </motion.div>
 
-      {/* Sign Up Form */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-8 bg-black/30 backdrop-blur-sm rounded-lg shadow-lg text-white">
-        <h2 className="text-3xl font-bold mb-6 text-center">Sign Up</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium mb-2">
+        {/* Sign Up Form */}
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
+          <div className="space-y-2">
+            <label htmlFor="name" className="block text-sm font-medium text-white/80">
               Full Name
             </label>
             <input
@@ -85,13 +102,16 @@ export default function SignUp() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 bg-black/20 border border-white/30 rounded focus:outline-none focus:border-orange-500"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 
+                       transition-all duration-300 placeholder:text-white/30"
               placeholder="Enter your full name"
               required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
+
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-white/80">
               Email
             </label>
             <input
@@ -99,13 +119,16 @@ export default function SignUp() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-black/20 border border-white/30 rounded focus:outline-none focus:border-orange-500"
-              placeholder="Enter your email"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 
+                       transition-all duration-300 placeholder:text-white/30"
+              placeholder="Enter your mavs.uta.edu email"
               required
             />
           </div>
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
+
+          <div className="space-y-2">
+            <label htmlFor="password" className="block text-sm font-medium text-white/80">
               Password
             </label>
             <input
@@ -113,26 +136,46 @@ export default function SignUp() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-black/20 border border-white/30 rounded focus:outline-none focus:border-orange-500"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 
+                       transition-all duration-300 placeholder:text-white/30"
               placeholder="Enter your password"
               required
             />
+            {passwordError && (
+              <p className="text-red-400 text-sm mt-2">{passwordError}</p>
+            )}
           </div>
-          <button
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300"
+            className="w-full px-6 py-3 bg-orange-500 text-white rounded-lg 
+                     hover:bg-orange-600 transform transition-all duration-300 
+                     focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2 
+                     focus:ring-offset-black/50"
           >
             Sign Up
-          </button>
-        </form>
-        {message && <p className="mt-4 text-center">{message}</p>}
-        <p className="mt-4 text-center">
+          </motion.button>
+        </motion.form>
+
+        {/* Login Link */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="mt-6 text-center text-white/60"
+        >
           Already have an account?{" "}
-          <Link href="/login" className="text-orange-500 hover:underline">
+          <button
+            onClick={() => router.push("/login")}  // Use router.push() for navigation
+            className="text-orange-400 hover:text-orange-300 hover:underline transition-colors duration-300"
+          >
             Log In
-          </Link>
-        </p>
-      </div>
+          </button>
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
