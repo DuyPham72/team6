@@ -6,6 +6,7 @@ import { FiMenu, FiX } from "react-icons/fi";
 export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: boolean) => void }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -25,6 +26,10 @@ export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: bool
     window.location.href = "/";
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };  
+
   return (
     <nav className="fixed top-0 left-0 w-full bg-black/30 backdrop-blur-sm z-50">
       <div className="flex justify-between items-center px-6 py-4 md:px-10">
@@ -35,6 +40,17 @@ export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: bool
             <span>UTA Housing</span>
           </div>
         </a>
+
+        {/* Search Bar */}
+        <div className="flex-grow mx-4">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search for housing..."
+            className="w-full py-2 rounded bg-white text-black pl-2"
+          />
+        </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex gap-4">
