@@ -8,13 +8,15 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "framer-motion": "^12.4.4",
+    "ldrs": "^1.1.2",
     "lucide-react": "^0.475.0",
     "mongodb": "^6.5.0",
     "next": "latest",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.5.2",
-    "react-icons": "^5.4.0"
+    "react-icons": "^5.4.0",
+    "sonner": "^2.0.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
