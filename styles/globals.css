@@ -26,3 +26,7 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+.drop-shadow-glow {
+    filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.5));
+  }
+

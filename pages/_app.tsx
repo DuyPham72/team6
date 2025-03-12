@@ -7,6 +7,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Component {...pageProps} />
       <Toaster />  {/* Add the Toaster component here */}
+      
     </>
   );
 }
