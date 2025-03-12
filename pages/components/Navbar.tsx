@@ -2,11 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
+import {housingOptions, HousingOption} from "./explore";
 
 export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: boolean) => void }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<HousingOption[]>([]);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -27,7 +30,19 @@ export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: bool
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if(query.length > 2) {
+      const results = housingOptions.filter((housing) =>
+        housing.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(results);
+      setIsDropdownVisible(true);  
+    }else {
+      setSearchResults([]);
+      setIsDropdownVisible(false);
+    }
   };  
 
   return (
@@ -42,14 +57,25 @@ export default function Navbar({ setIsMenuOpen }: { setIsMenuOpen: (isOpen: bool
         </a>
 
         {/* Search Bar */}
-        <div className="flex-grow mx-4">
+        <div className="relative flex-grow mx-4">
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
+            onBlur={() => setTimeout(() => setIsDropdownVisible(false), 100)}
+            onFocus={() => searchQuery && setIsDropdownVisible(true)}
             placeholder="Search for housing..."
             className="w-full py-2 rounded bg-white text-black pl-2"
           />
+          {isDropdownVisible && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded mt-1 z-10">
+              {searchResults.map((result, index) => (
+                <div key={index} className="px-4 py-5 hover:bg-gray-200 cursor-pointer">
+                  {result.name}
+                </div>
+              ))}
+            </div>  
+          )}    
         </div>
 
         {/* Desktop Navigation */}
