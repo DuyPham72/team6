@@ -4,8 +4,16 @@ import { useRouter } from "next/router"; // Use Next.js's useRouter for routing
 import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 
+export interface HousingOption {
+  id: number;
+  name: string;
+  location: string;
+  price: string;
+  rating: number;
+}
+
 // Mock data for housing options
-const housingOptions = [
+export const housingOptions: HousingOption[] = [
   { id: 1, name: "University Village", location: "Arlington, TX", price: "$800/month", rating: 4.5 },
   { id: 2, name: "The Heights on Pecan", location: "Arlington, TX", price: "$900/month", rating: 4.2 },
   { id: 3, name: "Centennial Court", location: "Arlington, TX", price: "$750/month", rating: 4.7 },
