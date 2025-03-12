@@ -29,6 +29,7 @@ import Navbar from "./Navbar";
 
 
 export interface HousingOption {
+  id: number;
   name: string;
   location: string;
   price: string;

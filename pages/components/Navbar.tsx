@@ -53,12 +53,14 @@ export default function Navbar({ setIsMenuOpen }: NavbarProps) {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
+    console.log("Search query:", query); // Debugging
     setSearchQuery(query);
 
     if (query.length > 2) {
       const results = housingOptions.filter((housing: HousingOption) =>
         housing.name.toLowerCase().includes(query.toLowerCase())
       );
+      console.log("Search results:", results); // Debugging
       setSearchResults(results);
       setIsDropdownVisible(true);
     } else {
@@ -168,17 +170,16 @@ export default function Navbar({ setIsMenuOpen }: NavbarProps) {
               className="w-full py-2 pl-10 pr-4 bg-white/5 text-white placeholder:text-white/40 border border-white/10 rounded-xl transition-all duration-300 focus:outline-none hover:bg-white/10"
             />
             {isDropdownVisible && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 w-full bg-white shadow-lg rounded mt-1 z-10">
-                {searchResults.map((result, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-5 hover:bg-gray-200 cursor-pointer"
-                  >
-                    {result.name}
-                  </div>
-                ))}
-              </div>
-            )}
+  <div className="absolute top-full left-0 w-full bg-black/80 backdrop-blur-lg rounded-lg mt-1 z-10 border border-white/10 shadow-lg">
+    {searchResults.map((result, index) => (
+      <Link key={index} href={`/housing/${result.id}`}> {/* Redirect to housing page */}
+        <div className="px-4 py-3 text-white/90 hover:bg-white/10 transition-colors duration-200 cursor-pointer">
+          {result.name}
+        </div>
+      </Link>
+    ))}
+  </div>
+)}
           </div>
         </div>
 
