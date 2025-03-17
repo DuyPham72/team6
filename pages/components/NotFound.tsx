@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
+import Link from "next/link"; // Use next/link for navigation
+import { useRouter } from "next/router"; // Replace react-router-dom with next/router
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 
 const NotFound = () => {
-  const location = useLocation();
+  const router = useRouter(); // Use next/router to access the current path
 
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      router.asPath // Use router.asPath to get the current path
     );
-  }, [location.pathname]);
+  }, [router.asPath]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-mavpads-light-gray px-4">
@@ -49,7 +50,7 @@ const NotFound = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Link
-            to="/"
+            href="/" // Use href instead of to
             className="px-8 py-4 bg-mavpads-orange text-white rounded-full inline-block transform transition-all duration-300 hover:scale-105 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:ring-offset-2"
           >
             Return to Home

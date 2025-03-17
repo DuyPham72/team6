@@ -6,7 +6,7 @@ interface Review {
   _id?: string;
   housingId: number;
   userId?: string;
-  userName?: string;
+  name?: string;
   rating: number;
   comment: string;
   location?: string;
@@ -17,7 +17,7 @@ interface Review {
 // Transform API review to testimonial format
 const mapReviewToTestimonial = (review: Review) => ({
   quote: review.comment,
-  author: review.userName || "Anonymous User",
+  author: review.name || "Anonymous User",
   location: review.location || "UTA Campus",
   rating: review.rating,
   image: review.userImage || undefined

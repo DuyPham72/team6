@@ -7,7 +7,7 @@ interface StarRatingProps {
   showValue?: boolean;
 }
 
-const StarRating = ({ rating, size = 16, className = "", showValue = true }: StarRatingProps) => {
+const StarRating = ({ rating = 0, size = 16, className = "", showValue = true }: StarRatingProps) => {
   // Convert rating to a visual representation of stars
   const renderStars = () => {
     const stars = [];
@@ -62,10 +62,5 @@ const StarRating = ({ rating, size = 16, className = "", showValue = true }: Sta
     </div>
   );
 };
-
-// Add this to your global CSS for the glow effect
-// .drop-shadow-glow {
-//   filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.5));
-// }
 
 export default StarRating;

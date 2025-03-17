@@ -36,16 +36,7 @@ const HeroSection = () => {
       className="relative min-h-screen flex items-center pt-20"
     >
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/70 z-10" />
-        <motion.img
-          initial={{ scale: 1.1, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/Assets/uta_housing.jpeg"
-          alt="UTA Housing"
-          className="w-full h-full object-cover"
-          loading="eager"
-        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black to-violet-900/70 z-10" />
       </div>
 
       {/* Decorative elements similar to the navbar */}
