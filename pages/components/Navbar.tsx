@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Home, LogOut, Menu, MessageSquare, Search, Users, X } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { HousingOption, housingOptions } from "./explore"; // Ensure this import is correct
@@ -132,13 +131,6 @@ export default function Navbar({ setIsMenuOpen }: NavbarProps) {
           <div className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 overflow-hidden rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 p-0.5">
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm group-hover:bg-black/10 transition-all duration-300"></div>
-              <Image
-                src="/Assets/uta_logo.png"
-                alt="UTA Logo"
-                width={50}
-                height={50}
-                className="w-full h-full object-cover rounded-md transform group-hover:scale-110 transition-transform duration-500"
-              />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
               MavPads

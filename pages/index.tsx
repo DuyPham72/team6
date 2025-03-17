@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Footer from "./components/Footer";
 import HeroSection from "./components/HeroSection";
 import Navbar from "./components/Navbar";
-import TeamSection from "./components/TeamSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 
 const Index = () => {
@@ -19,7 +18,7 @@ const Index = () => {
       <Navbar setIsMenuOpen={setIsMenuOpen} />
       <HeroSection />
       <TestimonialsSection />
-      <TeamSection />
+      {/* <TeamSection /> */}
       <Footer />
     </div>
   );
