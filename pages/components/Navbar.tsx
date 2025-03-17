@@ -132,7 +132,7 @@ export default function Navbar({ setIsMenuOpen }: NavbarProps) {
             <div className="relative w-10 h-10 overflow-hidden rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 p-0.5">
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm group-hover:bg-black/10 transition-all duration-300"></div>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-orange-400">
               MavPads
             </span>
           </div>

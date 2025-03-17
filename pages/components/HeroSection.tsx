@@ -61,7 +61,7 @@ const HeroSection = () => {
           
           <motion.h1 
             variants={itemVariants}
-            className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400 mb-6 tracking-tight"
+            className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-orange-400 mb-6 tracking-tight"
           >
             Welcome to MavPads
           </motion.h1>
