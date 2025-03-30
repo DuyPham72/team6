@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
 import Centinnial from "../../public/Assets/Centennial.jpg";
@@ -165,7 +166,7 @@ export const housingOptions = [
 ];
 
 export default function Explore() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isSignedIn } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedHousingId, setSelectedHousingId] = useState<number | null>(null);
   const [reviewFormHousingId, setReviewFormHousingId] = useState<number | null>(null);
@@ -192,11 +193,6 @@ export default function Explore() {
   };
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      setIsLoggedIn(true);
-    }
-
     // Apply animations when component mounts
     const timeline = setTimeout(() => {
       setActiveCardId(null);
@@ -627,7 +623,7 @@ export default function Explore() {
                         <span>Reviews</span>
                       </motion.button>
 
-                      {isLoggedIn && (
+                      {isSignedIn && (
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -733,7 +729,7 @@ export default function Explore() {
                         <span>Reviews</span>
                       </motion.button>
 
-                      {isLoggedIn && (
+                      {isSignedIn && (
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -804,3 +800,4 @@ export default function Explore() {
     </>
   );
 }
+

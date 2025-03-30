@@ -1,13 +1,14 @@
 import "@/styles/globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
-import { Toaster } from "react-hot-toast";
+import { ToastProvider } from "./components/ui/ToastContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <>
-      <Component {...pageProps} />
-      <Toaster />  {/* Add the Toaster component here */}
-      
-    </>
+    <ClerkProvider>
+      <ToastProvider>
+        <Component {...pageProps} />
+      </ToastProvider>
+    </ClerkProvider>
   );
 }

@@ -81,9 +81,15 @@ const HeroSection = () => {
                 window.location.href = "./components/explore";
                 toast("Exploring listings... Loading available properties near UTA");
               }}
-              className="px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-lg transition duration-300 shadow-lg shadow-violet-600/20"
+              className="px-8 py-4 bg-gradient-to-br from-violet-600/90 to-fuchsia-600/90 hover:from-violet-500/90 hover:to-fuchsia-500/90 text-white rounded-full transition-all duration-300 shadow-lg shadow-violet-600/20 backdrop-blur-sm border border-white/10 hover:border-white/20 relative overflow-hidden group"
             >
-              Explore Listings
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span className="relative flex items-center justify-center gap-2">
+                Explore Listings
+                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
             </motion.button>
           </motion.div>
         </motion.div>

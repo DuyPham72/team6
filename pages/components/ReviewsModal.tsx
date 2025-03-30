@@ -11,7 +11,7 @@ interface ReviewsModalProps {
 }
 
 const ReviewsModal = ({ housingId, apartmentName, onClose }: ReviewsModalProps) => {
-  const [reviews, setReviews] = useState<{ id: number; user: string; comment: string; rating: number }[]>([]);
+  const [reviews, setReviews] = useState<{ id: number; name: string; comment: string; rating: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
 
@@ -135,7 +135,7 @@ const ReviewsModal = ({ housingId, apartmentName, onClose }: ReviewsModalProps) 
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose} 
-                className="flex items-center justify-center w-10 h-10 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-white/60 hover:text-white bg-gradient-to-br from-white/5 to-white/10 hover:from-white/10 hover:to-white/20 rounded-lg border border-white/10 backdrop-blur-sm transition-all duration-300 shadow-lg shadow-black/20 hover:shadow-violet-500/20"
               >
                 <X className="h-5 w-5" />
               </motion.button>
@@ -179,10 +179,20 @@ const ReviewsModal = ({ housingId, apartmentName, onClose }: ReviewsModalProps) 
                       className="p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-all duration-300"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <p className="text-white font-medium">{review.user}</p>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">
+                              {!review.name || review.name === "Anonymous" ? "A" : review.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">{review.name || "Anonymous"}</p>
+                            <p className="text-white/60 text-xs">Reviewer</p>
+                          </div>
+                        </div>
                         <StarRating rating={review.rating} size={16} />
                       </div>
-                      <p className="text-white text-sm">{review.comment}</p>
+                      <p className="text-white/90 text-sm ml-10">{review.comment}</p>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -207,9 +217,15 @@ const ReviewsModal = ({ housingId, apartmentName, onClose }: ReviewsModalProps) 
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={onClose}
-              className="mt-6 px-4 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-lg transition duration-300 w-full shadow-lg shadow-violet-600/20 font-medium"
+              className="mt-6 px-4 py-3 bg-gradient-to-br from-violet-600/90 to-fuchsia-600/90 hover:from-violet-500/90 hover:to-fuchsia-500/90 text-white rounded-lg transition-all duration-300 w-full shadow-lg shadow-violet-600/20 font-medium backdrop-blur-sm border border-white/10 hover:border-white/20 relative overflow-hidden group"
             >
-              Close
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span className="relative flex items-center justify-center gap-2">
+                Close
+                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
             </motion.button>
           </div>
 
