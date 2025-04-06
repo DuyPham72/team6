@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { MapPin, Heart, Share2, Info } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
+import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
 import Centinnial from "../../public/Assets/Centennial.jpg";
 import Height_At_Pecan from "../../public/Assets/Height_At_Pecan.png";
