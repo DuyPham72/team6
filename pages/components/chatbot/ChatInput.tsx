@@ -1,6 +1,6 @@
 import { Send } from "lucide-react";
-import React from "react";
-import { Button } from "../ui/button";
+import React, { RefObject } from "react";
+import { Button } from "../../components/ui/button";
 
 interface ChatInputProps {
   value: string;
@@ -8,7 +8,7 @@ interface ChatInputProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
   onSend: () => void;
   disabled?: boolean;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement>;
 }
 
 export const ChatInput = ({
@@ -16,11 +16,11 @@ export const ChatInput = ({
   onChange,
   onKeyDown,
   onSend,
-  disabled,
+  disabled = false,
   inputRef,
 }: ChatInputProps) => {
   return (
-    <div className="p-3 border-t bg-gradient-to-b from-black to-violet-900/70">
+    <div className="p-4 border-t border-gray-700 bg-gradient-to-b from-violet-900/50 to-gray-800/90 backdrop-blur-lg">
       <div className="relative flex items-center">
         <input
           ref={inputRef}
@@ -30,16 +30,19 @@ export const ChatInput = ({
           onKeyDown={onKeyDown}
           disabled={disabled}
           placeholder="Type a message..."
-          className="flex-1 py-2 px-4 bg-gradient-to-r from-violet-400 via-fuchsia-400 to-orange-400 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-transparent transition-all"
+          className="flex-1 bg-white/10 border border-white/10 rounded-full py-3 px-4 pr-12 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
         />
         <Button
           onClick={onSend}
           disabled={disabled || !value.trim()}
-          variant="primary"
-          className="ml-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className={`absolute right-1.5 rounded-full w-9 h-9 flex items-center justify-center ${
+            !value.trim() || disabled
+              ? "bg-gray-700 text-gray-400"
+              : "bg-violet-600 text-white hover:bg-violet-500"
+          }`}
           aria-label="Send message"
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

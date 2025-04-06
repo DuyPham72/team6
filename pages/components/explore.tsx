@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   Filter,
+  Heart,
   MapPin,
   MessageCircle,
   PlusCircle,
@@ -27,10 +28,12 @@ import ReviewForm from "../components/ReviewForm";
 import ReviewsModal from "../components/ReviewsModal";
 import StarRating from "../components/StarRating";
 import Navbar from "./Navbar";
+import { useToast } from "./ui/ToastContext";
+import { getLocalSavedListings, saveListingLocally, removeListingLocally, syncLocalSavedListings } from '../../lib/utils/localStorage';
 
 
 export interface HousingOption {
-  id: number;
+  id: string;
   name: string;
   location: string;
   price: string;
@@ -38,13 +41,12 @@ export interface HousingOption {
   amenities: string[];
   image: string;
   place: string;
-  
 }
 
 // Mock data for housing options
 export const housingOptions = [
   {
-    id: 1,
+    id: "1",
     name: "Arlington Hall",
     location: "Arlington, TX",
     price: "$800/month",
@@ -54,7 +56,7 @@ export const housingOptions = [
     place: "Residence Hall",
   },
   {
-    id: 2,
+    id: "2",
     name: "KC Hall",
     location: "Arlington, TX",
     price: "$900/month",
@@ -74,7 +76,7 @@ export const housingOptions = [
   //   place: "Residence Hall",
   // },
   {
-    id: 4,
+    id: "4",
     name: "Vandergriff Hall",
     location: "Arlington, TX",
     price: "$850/month",
@@ -84,7 +86,7 @@ export const housingOptions = [
     place: "Residence Hall",
   },
   {
-    id: 5,
+    id: "5",
     name: "West Hall",
     location: "Arlington, TX",
     price: "$700/month",
@@ -94,7 +96,7 @@ export const housingOptions = [
     place: "Residence Hall",
   },
   {
-    id: 6,
+    id: "6",
     name: "Arbor Oaks",
     location: "Arlington, TX",
     price: "$720/month",
@@ -104,7 +106,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 7,
+    id: "7",
     name: "The Heights on Pecan",
     location: "Arlington, TX",
     price: "$720/month",
@@ -114,7 +116,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 8,
+    id: "8",
     name: "The Lofts",
     location: "Arlington, TX",
     price: "$720/month",
@@ -124,7 +126,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 9,
+    id: "9",
     name: "Meadow Run",
     location: "Arlington, TX",
     price: "$720/month",
@@ -134,7 +136,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 10,
+    id: "10",
     name: "Timber Brook",
     location: "Arlington, TX",
     price: "$720/month",
@@ -144,7 +146,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 11,
+    id: "11",
     name: "University Village",
     location: "Arlington, TX",
     price: "$720/month",
@@ -154,7 +156,7 @@ export const housingOptions = [
     place: "Apartment",
   },
   {
-    id: 12,
+    id: "12",
     name: "Centennial Court (Privately Owned)",
     location: "Arlington, TX",
     price: "$720/month",
@@ -166,20 +168,23 @@ export const housingOptions = [
 ];
 
 export default function Explore() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedHousingId, setSelectedHousingId] = useState<number | null>(null);
-  const [reviewFormHousingId, setReviewFormHousingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
   const [placeFilter, setPlaceFilter] = useState("");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filteredOptions, setFilteredOptions] = useState(housingOptions);
-  const [activeCardId, setActiveCardId] = useState<number | null>(null);
   const [sortOrder, setSortOrder] = useState("rating");
   const [viewMode, setViewMode] = useState("grid");
-
+  const [filteredOptions, setFilteredOptions] = useState<HousingOption[]>([]);
+  const [savedListings, setSavedListings] = useState<string[]>([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [selectedHousing, setSelectedHousing] = useState<HousingOption | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const { showToast } = useToast();
   const router = useRouter();
+
   const scrollRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: scrollRef,
@@ -188,14 +193,26 @@ export default function Explore() {
 
   const backgroundY = useTransform(scrollYProgress, [0, 1], [0, 100]);
 
-  const handleViewDetails = (id: number): void => {
+  const handleViewDetails = (id: string) => {
     router.push(`/housing/${id}`);
   };
+
+  // Read URL query parameters
+  useEffect(() => {
+    const { maxPrice, placeType } = router.query;
+    console.log('URL Query Parameters:', { maxPrice, placeType });
+    if (maxPrice && typeof maxPrice === 'string') {
+      setPriceFilter(maxPrice);
+    }
+    if (placeType && typeof placeType === 'string') {
+      setPlaceFilter(placeType);
+    }
+  }, [router.query]);
 
   useEffect(() => {
     // Apply animations when component mounts
     const timeline = setTimeout(() => {
-      setActiveCardId(null);
+      setSelectedHousing(null);
     }, 1500);
 
     return () => clearTimeout(timeline);
@@ -203,6 +220,7 @@ export default function Explore() {
 
   useEffect(() => {
     let filtered = housingOptions;
+    console.log('Initial filters:', { priceFilter, placeFilter });
 
     // Apply search query
     if (searchQuery) {
@@ -216,32 +234,93 @@ export default function Explore() {
     // Apply price filter
     if (priceFilter) {
       const maxPrice = parseInt(priceFilter.replace(/\D/g, ""));
+      console.log('Applying price filter:', maxPrice);
       filtered = filtered.filter((option) => {
         const price = parseInt(option.price.replace(/\D/g, ""));
+        console.log('Comparing prices:', { optionPrice: price, maxPrice });
         return price <= maxPrice;
       });
     }
 
     // Apply place filter
     if (placeFilter) {
-      filtered = filtered.filter((option) => option.place === placeFilter);
+      console.log('Applying place filter:', placeFilter);
+      filtered = filtered.filter((option) => {
+        console.log('Comparing places:', { optionPlace: option.place, filterPlace: placeFilter });
+        return option.place === placeFilter;
+      });
     }
 
-    // Apply sorting
-    if (sortOrder === "price-low") {
-      filtered = [...filtered].sort((a, b) => {
-        return parseInt(a.price.replace(/\D/g, "")) - parseInt(b.price.replace(/\D/g, ""));
-      });
-    } else if (sortOrder === "price-high") {
-      filtered = [...filtered].sort((a, b) => {
-        return parseInt(b.price.replace(/\D/g, "")) - parseInt(a.price.replace(/\D/g, ""));
-      });
-    } else if (sortOrder === "rating") {
-      filtered = [...filtered].sort((a, b) => b.rating - a.rating);
-    }
-
+    console.log('Filtered results:', filtered);
     setFilteredOptions(filtered);
   }, [searchQuery, priceFilter, placeFilter, sortOrder]);
+
+  // Initialize saved listings from both local storage and server
+  useEffect(() => {
+    if (isSignedIn) {
+      // If user is signed in, fetch saved listings from server and sync local storage
+      fetchSavedListings();
+      syncLocalSavedListings(user?.id || '');
+    } else {
+      // If user is not signed in, use local storage
+      setSavedListings(getLocalSavedListings());
+    }
+  }, [isSignedIn, user?.id]);
+
+  const fetchSavedListings = async () => {
+    try {
+      const response = await fetch('/api/saved');
+      if (response.ok) {
+        const data = await response.json();
+        setSavedListings(data.map((item: { listingId: string }) => item.listingId));
+      }
+    } catch (error) {
+      console.error('Error fetching saved listings:', error);
+    }
+  };
+
+  const handleSaveListing = async (listingId: string) => {
+    const isSaved = savedListings.includes(listingId);
+
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/saved', {
+          method: isSaved ? 'DELETE' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ listingId }),
+        });
+
+        if (response.ok) {
+          if (isSaved) {
+            setSavedListings(savedListings.filter((id) => id !== listingId));
+            showToast('Listing removed from saved', 'success');
+          } else {
+            setSavedListings([...savedListings, listingId]);
+            showToast('Listing saved successfully', 'success');
+          }
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to save listing');
+        }
+      } catch (error) {
+        console.error('Error saving listing:', error);
+        showToast(error instanceof Error ? error.message : 'Failed to save listing', 'error');
+      }
+    } else {
+      // Handle local storage for non-authenticated users
+      if (isSaved) {
+        removeListingLocally(listingId);
+        setSavedListings(savedListings.filter((id) => id !== listingId));
+        showToast('Listing removed from saved', 'success');
+      } else {
+        saveListingLocally(listingId);
+        setSavedListings([...savedListings, listingId]);
+        showToast('Listing saved locally', 'info');
+      }
+    }
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -288,7 +367,7 @@ export default function Explore() {
   };
 
   interface HousingOption {
-    id: number;
+    id: string;
     name: string;
     location: string;
     price: string;
@@ -299,7 +378,7 @@ export default function Explore() {
 
 
   interface HandleCardHover {
-    (id: number): void;
+    (id: string): void;
   }
 
   const handleCardHover: HandleCardHover = (id) => {
@@ -413,7 +492,6 @@ export default function Explore() {
                   >
                     <Filter size={18} />
                     <span>Filters</span>
-                    {isFilterOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </button>
 
                   <div className="flex gap-2">
@@ -566,8 +644,22 @@ export default function Explore() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg">
-                      <StarRating rating={option.rating} size={16} />
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg">
+                        <StarRating rating={option.rating} size={16} />
+                      </div>
+                      <button
+                        onClick={() => handleSaveListing(option.id)}
+                        className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            savedListings.includes(option.id)
+                              ? "text-violet-400 fill-current"
+                              : "text-white/80"
+                          }`}
+                        />
+                      </button>
                     </div>
                   </div>
 
@@ -616,7 +708,7 @@ export default function Explore() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedHousingId(option.id)}
+                        onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
                         className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -627,7 +719,7 @@ export default function Explore() {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => setReviewFormHousingId(option.id)}
+                          onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
                           className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
                           <PlusCircle className="w-4 h-4" />
@@ -673,6 +765,23 @@ export default function Explore() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-gradient-to-r" />
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg">
+                        <StarRating rating={option.rating} size={16} />
+                      </div>
+                      <button
+                        onClick={() => handleSaveListing(option.id)}
+                        className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            savedListings.includes(option.id)
+                              ? "text-violet-400 fill-current"
+                              : "text-white/80"
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="relative p-6 flex-grow">
@@ -722,7 +831,7 @@ export default function Explore() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedHousingId(option.id)}
+                        onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
                         className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -733,7 +842,7 @@ export default function Explore() {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => setReviewFormHousingId(option.id)}
+                          onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
                           className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
                           <PlusCircle className="w-4 h-4" />
@@ -775,24 +884,22 @@ export default function Explore() {
 
         {/* Reviews Modal */}
         <AnimatePresence>
-          {selectedHousingId && (
+          {selectedHousing && (
             <ReviewsModal
-              housingId={selectedHousingId}
-              apartmentName={housingOptions.find((h) => h.id === selectedHousingId)?.name || ""}
-              onClose={() => setSelectedHousingId(null)}
+              housingId={selectedHousing.id}
+              apartmentName={selectedHousing.name}
+              onClose={() => setSelectedHousing(null)}
             />
           )}
         </AnimatePresence>
 
         {/* Review Form Modal */}
         <AnimatePresence>
-          {reviewFormHousingId && (
+          {selectedHousing && (
             <ReviewForm
-              housingId={reviewFormHousingId}
-              apartmentName={
-                housingOptions.find((h) => h.id === reviewFormHousingId)?.name || ""
-              }
-              onClose={() => setReviewFormHousingId(null)}
+              housingId={selectedHousing.id}
+              apartmentName={selectedHousing.name}
+              onClose={() => setSelectedHousing(null)}
             />
           )}
         </AnimatePresence>

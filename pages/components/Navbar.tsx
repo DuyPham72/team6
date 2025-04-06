@@ -1,6 +1,6 @@
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { Home, MessageSquare, Search, Users } from "lucide-react";
+import { Home, MessageSquare, Search, Users, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 //import { HousingOption, housingOptions } from "./explore"; // Ensure this import is correct
@@ -131,6 +131,19 @@ export default function Navbar({ setIsMenuOpen }: NavbarProps) {
               <span>Feedback</span>
             </motion.button>
           </Link>
+
+          {isSignedIn && (
+            <Link href="/saved">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition duration-300 flex items-center gap-2 backdrop-blur-sm border border-white/5 hover:border-white/10"
+              >
+                <Bookmark size={18} />
+                <span>Saved</span>
+              </motion.button>
+            </Link>
+          )}
 
           <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent mx-1"></div>
 

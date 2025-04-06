@@ -8,7 +8,11 @@ type ResponseCategory = {
   responses: string[];
 };
 
-export type ChatbotResponse = string | HousingQueryAction;
+export type ChatbotResponse = {
+  type: 'message' | 'redirect';
+  content: string;
+  url?: string;
+};
 
 export type HousingQueryAction = {
   type: "redirect";
@@ -139,36 +143,55 @@ const isHousingSearchQuery = (message: string): boolean => {
   return searchPatterns.some(pattern => pattern.test(message));
 };
 
-export const processUserMessage = async (message: string): Promise<ChatbotResponse> => {
-  const lowerMessage = message.toLowerCase();
-  
-  // Check if this is a housing search query
+const keywordResponses: Record<string, string> = {
+  "hello|hi|hey": "Hello! How can I help you find housing today?",
+  "help|assist": "I can help you find housing options based on price, location, and type. Just ask me something like 'show me apartments under $800' or 'find me a residence hall'.",
+  "thanks|thank you": "You're welcome! Let me know if you need anything else.",
+  "bye|goodbye": "Goodbye! Feel free to come back if you need more help finding housing."
+};
+
+export const processUserMessage = (message: string): ChatbotResponse => {
+  // Check if it's a housing search query
   if (isHousingSearchQuery(message)) {
-    // Parse the query to extract parameters
-    const params = parseHousingQuery(message);
+    const priceMatch = message.match(/\$?(\d+)/);
+    const placeMatch = message.match(/(apartment|residence hall|dorm|house)/i);
     
-    // Build the URL with query parameters
-    const queryString = Object.entries(params)
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-      .join('&');
+    const queryParams = new URLSearchParams();
     
-    // Return a redirect action
+    if (priceMatch) {
+      queryParams.append('maxPrice', priceMatch[1]);
+    }
+    
+    if (placeMatch) {
+      const placeType = placeMatch[1].toLowerCase();
+      if (placeType === 'apartment') {
+        queryParams.append('placeType', 'Apartment');
+      } else if (placeType === 'residence hall' || placeType === 'dorm') {
+        queryParams.append('placeType', 'Residence Hall');
+      }
+    }
+    
+    const queryString = queryParams.toString();
+    const redirectUrl = `/components/explore${queryString ? `?${queryString}` : ''}`;
+    
     return {
-      type: "redirect",
-      url: `/explore?${queryString}`,
+      type: 'redirect',
+      content: `I'll help you find housing options${priceMatch ? ` under $${priceMatch[1]}` : ''}${placeMatch ? ` that are ${placeMatch[1]}s` : ''}.`,
+      url: redirectUrl
     };
   }
-  
-  // Check for matches in response categories
-  for (const category of responseCategories) {
-    if (category.keywords.some((keyword) => lowerMessage.includes(keyword))) {
-      // Select a random response from the matching category
-      const randomIndex = Math.floor(Math.random() * category.responses.length);
-      return category.responses[randomIndex];
+
+  // Check for keywords in the message
+  const lowerMessage = message.toLowerCase();
+  for (const [keywords, response] of Object.entries(keywordResponses)) {
+    if (keywords.split("|").some((keyword) => lowerMessage.includes(keyword))) {
+      return { type: 'message', content: response };
     }
   }
-  
-  // If no keyword matches, return a fallback response
-  const randomIndex = Math.floor(Math.random() * fallbackResponses.length);
-  return fallbackResponses[randomIndex];
+
+  // If no keywords match, return a fallback response
+  return { 
+    type: 'message', 
+    content: fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)] 
+  };
 };

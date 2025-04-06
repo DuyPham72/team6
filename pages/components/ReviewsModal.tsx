@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import StarRating from "./StarRating";
 
 interface ReviewsModalProps {
-  housingId: number;
+  housingId: string;
   apartmentName: string;
   onClose: () => void;
 }

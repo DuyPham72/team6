@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { MapPin, Phone, Info, Share2, Heart } from "lucide-react";
+import { MapPin, Heart, Share2, Info } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
@@ -227,118 +227,97 @@ const HousingDetail = () => {
             transition={{ duration: 0.7 }}
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              {/* Image Section */}
-              <div className="relative group overflow-hidden">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.5 }}
-                  className="relative aspect-[4/3]"
-                >
-                  <img
-                    src={housing.image}
-                    alt={housing.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="absolute top-4 right-4 flex space-x-2">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setIsFavorite(!isFavorite)}
-                      className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
-                        isFavorite
-                          ? "bg-pink-500 text-white shadow-lg shadow-pink-500/20"
-                          : "bg-black/50 text-white/80 hover:bg-black/70"
-                      }`}
-                    >
-                      <Heart size={20} className={isFavorite ? "fill-white" : ""} />
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-full bg-black/50 backdrop-blur-md text-white/80 hover:bg-black/70 transition-all duration-300"
-                    >
-                      <Share2 size={20} />
-                    </motion.button>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Details Section */}
-              <div className="p-8 space-y-6">
-                <div>
+            {/* Image Section - Full Width */}
+            <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.5 }}
+                className="relative w-full h-full"
+              >
+                <img
+                  src={housing.image}
+                  alt={housing.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute top-4 right-4 flex space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setIsFavorite(!isFavorite)}
+                    className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
+                      isFavorite
+                        ? "bg-pink-500 text-white shadow-lg shadow-pink-500/20"
+                        : "bg-black/50 text-white/80 hover:bg-black/70"
+                    }`}
+                  >
+                    <Heart size={20} className={isFavorite ? "fill-white" : ""} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="p-2 rounded-full bg-black/50 backdrop-blur-md text-white/80 hover:bg-black/70 transition-all duration-300"
+                  >
+                    <Share2 size={20} />
+                  </motion.button>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
                   <motion.h1 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-4xl font-bold text-white mb-4"
+                    className="text-4xl font-bold text-white mb-2"
                   >
                     {housing.name}
                   </motion.h1>
-                  <div className="flex items-center text-white/70 space-x-2 mb-4">
+                  <div className="flex items-center text-white/70 space-x-2 mb-2">
                     <MapPin size={18} />
                     <span>{housing.location}</span>
                   </div>
-                  <div className="flex items-center space-x-3 mb-6">
+                  <div className="flex items-center space-x-3">
                     <StarRating rating={housing.rating} size={20} />
                     <span className="text-white/80">{housing.rating} out of 5</span>
                   </div>
                 </div>
+              </motion.div>
+            </div>
 
-                <div className="bg-gradient-to-br from-violet-900/50 to-fuchsia-900/50 rounded-xl p-4 border border-white/5">
-                  <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400 mb-1">
-                    {housing.price}
-                  </h2>
-                  <p className="text-white/70">Per person, per month</p>
-                </div>
+            {/* Details Section */}
+            <div className="p-8 space-y-6">
+              <div className="bg-gradient-to-br from-violet-900/50 to-fuchsia-900/50 rounded-xl p-4 border border-white/5">
+                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400 mb-1">
+                  {housing.price}
+                </h2>
+                <p className="text-white/70">Per person, per month</p>
+              </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Amenities</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {housing.amenities.map((amenity, index) => (
-                      <motion.span
-                        key={index}
-                        whileHover={{ scale: 1.05 }}
-                        className="text-sm bg-white/10 text-white/90 px-3 py-1 rounded-full hover:bg-white/20 transition-all duration-300"
-                      >
-                        {amenity}
-                      </motion.span>
-                    ))}
-                  </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white">Amenities</h3>
+                <div className="flex flex-wrap gap-2">
+                  {housing.amenities.map((amenity, index) => (
+                    <motion.span
+                      key={index}
+                      whileHover={{ scale: 1.05 }}
+                      className="text-sm bg-white/10 text-white/90 px-3 py-1 rounded-full hover:bg-white/20 transition-all duration-300"
+                    >
+                      {amenity}
+                    </motion.span>
+                  ))}
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Property Type</h3>
-                  <div className="flex items-center space-x-2 text-white/80 bg-white/5 p-3 rounded-lg">
-                    <Info size={18} className="text-violet-400" />
-                    <span>{housing.place}</span>
-                  </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white">Property Type</h3>
+                <div className="flex items-center space-x-2 text-white/80 bg-white/5 p-3 rounded-lg">
+                  <Info size={18} className="text-violet-400" />
+                  <span>{housing.place}</span>
                 </div>
+              </div>
 
-                <div className="flex flex-col space-y-3">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full px-4 py-3 bg-gradient-to-br from-violet-600/90 to-fuchsia-600/90 hover:from-violet-500/90 hover:to-fuchsia-500/90 text-white rounded-full transition-all duration-300 shadow-lg shadow-violet-600/20 font-medium backdrop-blur-sm border border-white/10 hover:border-white/20"
-                  >
-                    Apply Now
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-full transition-all duration-300 backdrop-blur-sm"
-                  >
-                    <Phone size={18} />
-                    <span>Schedule a Tour</span>
-                  </motion.button>
-                </div>
-
-                <div className="p-4 rounded-xl bg-indigo-900/30 border border-indigo-500/30">
-                  <p className="text-white/80 text-sm">
-                    Mention that you found this listing on UTA Housing when contacting for a special discount!
-                  </p>
-                </div>
+              <div className="p-4 rounded-xl bg-indigo-900/30 border border-indigo-500/30">
+                <p className="text-white/80 text-sm">
+                  Mention that you found this listing on UTA Housing when contacting for a special discount!
+                </p>
               </div>
             </div>
           </motion.div>

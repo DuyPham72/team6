@@ -7,7 +7,7 @@ import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
 
 interface ReviewFormProps {
-  housingId: number;
+  housingId: string;
   apartmentName: string;
   onClose: () => void;
 }

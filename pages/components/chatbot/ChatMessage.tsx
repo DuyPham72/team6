@@ -34,8 +34,8 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
       <div
         className={`max-w-[80%] p-3 rounded-lg ${
           isBot
-            ? "bg-gradient-to-b from-black to-violet-900/70 border border-gray-200 shadow-sm"
-            : "bg-black text-white"
+            ? "bg-gradient-to-br from-violet-900/70 to-gray-800/80 border border-violet-500/30 shadow"
+            : "bg-black/60 text-white border border-white/10"
         }`}
       >
         <p className="text-sm">{message.content}</p>

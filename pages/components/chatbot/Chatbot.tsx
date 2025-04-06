@@ -1,12 +1,15 @@
 import { cn } from "@/lib/utils";
 import { MessageSquare, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { useLocalStorage } from "../../../lib/use-local-storage";
 import { Button } from "../../components/ui/button";
 import { BotAvatar } from "./BotAvatar";
 import { processUserMessage } from "./chatbotUtils";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
+
+import { useToast } from "../../components/ui/ToastContext";
 
 export type Message = {
   id: string;
@@ -22,6 +25,8 @@ export const Chatbot = () => {
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const { showToast } = useToast();
   
   // Initial greeting message if no messages exist
   useEffect(() => {
@@ -79,49 +84,27 @@ export const Chatbot = () => {
     
     // Process the message and get a response
     try {
-      // Store the original response
       const response = await processUserMessage(inputValue);
       
-      // Debug log to see what the response looks like
-      console.log("Response from processUserMessage:", response);
+      // Add bot message
+      const botMessage: Message = {
+        id: `bot-${Date.now()}`,
+        role: "bot",
+        content: response.content,
+        timestamp: Date.now(),
+      };
       
-      // Convert response to string, regardless of what it is
-      let botResponseText: string;
+      setMessages(prev => [...prev, botMessage]);
       
-      if (typeof response === 'string') {
-        botResponseText = response;
-      } else if (response === null || response === undefined) {
-        botResponseText = "I'm not sure how to respond to that.";
-      } else if (typeof response === 'object') {
-        // Check if it has type and url properties
-        if ('type' in response && 'url' in response) {
-          botResponseText = `I found a ${response.type} resource for you at: ${response.url}`;
-          window.location.href = response.url;
-        } else {
-          try {
-            botResponseText = JSON.stringify(response);
-          } catch (e) {
-            botResponseText = "I received a response I can't display properly.";
-          }
-        }
+      // Handle redirection if needed
+      if (response.type === 'redirect' && response.url) {
+        setTimeout(() => {
+          router.push(response.url!);
+          setIsTyping(false);
+        }, 1000);
       } else {
-        // For any other type (number, boolean, etc.)
-        botResponseText = String(response);
-      }
-      
-      // Add bot response after a small delay to simulate typing
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            role: "bot",
-            content: botResponseText,
-            timestamp: Date.now(),
-          },
-        ]);
         setIsTyping(false);
-      }, 500 + Math.random() * 1000);
+      }
     } catch (error) {
       console.error("Error processing message:", error);
       setIsTyping(false);
@@ -152,7 +135,7 @@ export const Chatbot = () => {
       {!isOpen && (
         <Button
           onClick={handleOpenChat}
-          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg flex items-center justify-center bg-white text-white hover:bg-gray-800 transition-all duration-300 animate-fade-in"
+          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg flex items-center justify-center bg-gradient-to-r from-violet-800 to-purple-900 text-white hover:from-violet-700 hover:to-purple-800 transition-all duration-300"
           aria-label="Open chat"
         >
           <MessageSquare className="w-6 h-6" />
@@ -168,14 +151,14 @@ export const Chatbot = () => {
             : "translate-y-4 opacity-0 pointer-events-none"
         )}
       >
-        <div className="overflow-hidden bg-white border border-gray-200 rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col h-[500px] max-h-[80vh]">
+        <div className="overflow-hidden bg-gray-900/90 border border-violet-500/30 rounded-t-lg sm:rounded-lg shadow-2xl shadow-violet-500/20 flex flex-col h-[500px] max-h-[80vh]">
           {/* Chat header */}
-          <div className="px-4 py-3 border-b flex items-center justify-between bg-gradient-to-b from-black to-violet-900/70">
-            <div className="flex items-center gap-2 ">
+          <div className="px-4 py-3 border-b border-violet-500/20 flex items-center justify-between bg-gradient-to-r from-violet-900/90 to-gray-900">
+            <div className="flex items-center gap-2">
               <BotAvatar />
               <div>
                 <h3 className="font-medium text-white">Housing Assistant</h3>
-                <p className="text-xs text-white">
+                <p className="text-xs text-violet-200/70">
                   {isTyping ? "Typing..." : "Online"}
                 </p>
               </div>
@@ -184,30 +167,28 @@ export const Chatbot = () => {
               variant="secondary"
               onClick={handleCloseChat}
               aria-label="Close chat"
-              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+              className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-colors p-2"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Chat messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-black to-violet-900/70">
-            {messages.map((message) => {
-              // Ensure message content is always a string before rendering
-              const safeMessage = {
-                ...message,
-                content: typeof message.content === 'string' 
-                  ? message.content
-                  : typeof message.content === 'object'
-                    ? JSON.stringify(message.content)
-                    : String(message.content)
-              };
-              return <ChatMessage key={message.id} message={safeMessage} />;
-            })}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900 to-black">
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
             {isTyping && (
-              <div className="flex items-center space-x-2 animate-pulse">
+              <div className="flex items-center space-x-2">
                 <BotAvatar size="sm" />
-                <div className="bg-gray-200 h-8 w-16 rounded-full"></div>
+                <div className="flex space-x-1 p-2">
+                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
+                       style={{ animationDelay: '300ms' }} />
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -229,4 +210,3 @@ export const Chatbot = () => {
 };
 
 export default Chatbot;
-

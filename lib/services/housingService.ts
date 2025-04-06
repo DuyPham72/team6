@@ -2,171 +2,183 @@
 export interface HousingListing {
     id: string;
     title: string;
-    address: string;
+    description: string;
     price: number;
+    location: string;
+    rating: number;
+    image: string;
+    amenities: string[];
+    type: string;
     bedrooms: number;
     bathrooms: number;
     squareFeet: number;
-    imageUrl: string;
-    amenities: string[];
-    rating?: number;
-    place?: string;
-  }
+}
   
-  // Transformed housing options from your data
-  export const housingListings: HousingListing[] = [
+// Transformed housing options from your data
+export const housingListings: HousingListing[] = [
     {
       id: "1",
       title: "Arlington Hall",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 800,
+      location: "Arlington, TX",
+      rating: 4.5,
+      image: "/Assets/Arlington_Hall.png",
+      amenities: ["Wi-Fi", "Fitness Center", "Pool"],
+      type: "Residence Hall",
       bedrooms: 2,
       bathrooms: 1,
-      squareFeet: 650,
-      imageUrl: "/Assets/Arlington_Hall.png",
-      amenities: ["Wi-Fi", "Fitness Center", "Pool"],
-      rating: 4.5,
-      place: "Residence Hall"
+      squareFeet: 650
     },
     {
       id: "2",
       title: "KC Hall",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 900,
+      location: "Arlington, TX",
+      rating: 4.2,
+      image: "/Assets/KC_Hall.png",
+      amenities: ["Parking", "Study Rooms", "Laundry"],
+      type: "Residence Hall",
       bedrooms: 2,
       bathrooms: 1,
-      squareFeet: 700,
-      imageUrl: "/Assets/KC_Hall.png",
-      amenities: ["Parking", "Study Rooms", "Laundry"],
-      rating: 4.2,
-      place: "Residence Hall"
+      squareFeet: 700
     },
     {
       id: "4",
       title: "Vandergriff Hall",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 850,
+      location: "Arlington, TX",
+      rating: 4.3,
+      image: "/Assets/Vandergriff_Hall.png",
+      amenities: ["Shuttle Service", "Utilities Included", "Furnished"],
+      type: "Residence Hall",
       bedrooms: 1,
       bathrooms: 1,
-      squareFeet: 600,
-      imageUrl: "/Assets/Vandergriff_Hall.png",
-      amenities: ["Shuttle Service", "Utilities Included", "Furnished"],
-      rating: 4.3,
-      place: "Residence Hall"
+      squareFeet: 600
     },
     {
       id: "5",
       title: "West Hall",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 700,
+      location: "Arlington, TX",
+      rating: 4.1,
+      image: "/Assets/West_Hall.png",
+      amenities: ["On-Campus", "Meal Plan", "24/7 Support"],
+      type: "Residence Hall",
       bedrooms: 1,
       bathrooms: 1,
-      squareFeet: 550,
-      imageUrl: "/Assets/West_Hall.png",
-      amenities: ["On-Campus", "Meal Plan", "24/7 Support"],
-      rating: 4.1,
-      place: "Residence Hall"
+      squareFeet: 550
     },
     {
       id: "6",
       title: "Arbor Oaks",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Arbor_Oaks.jpeg",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 1,
       bathrooms: 1,
-      squareFeet: 600,
-      imageUrl: "/Assets/Arbor_Oaks.jpeg",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 600
     },
     {
       id: "7",
       title: "The Heights on Pecan",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Height_At_Pecan.png",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 2,
       bathrooms: 1,
-      squareFeet: 750,
-      imageUrl: "/Assets/Height_At_Pecan.png",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 750
     },
     {
       id: "8",
       title: "The Lofts",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Loft.png",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 1,
       bathrooms: 1,
-      squareFeet: 620,
-      imageUrl: "/Assets/Loft.png",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 620
     },
     {
       id: "9",
       title: "Meadow Run",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Medow_Run.png",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 2,
       bathrooms: 2,
-      squareFeet: 800,
-      imageUrl: "/Assets/Medow_Run.png",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 800
     },
     {
       id: "10",
       title: "Timber Brook",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Timber_Brook.png",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 2,
       bathrooms: 1,
-      squareFeet: 750,
-      imageUrl: "/Assets/Timber_Brook.png",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 750
     },
     {
       id: "11",
       title: "University Village",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/University_Village.png",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 1,
       bathrooms: 1,
-      squareFeet: 600,
-      imageUrl: "/Assets/University_Village.png",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 600
     },
     {
       id: "12",
       title: "Centennial Court (Privately Owned)",
-      address: "Arlington, TX",
+      description: "Arlington, TX",
       price: 720,
+      location: "Arlington, TX",
+      rating: 4.4,
+      image: "/Assets/Centennial.jpg",
+      amenities: ["Study Lounge", "Community Events", "AC"],
+      type: "Apartment",
       bedrooms: 2,
       bathrooms: 2,
-      squareFeet: 850,
-      imageUrl: "/Assets/Centennial.jpg",
-      amenities: ["Study Lounge", "Community Events", "AC"],
-      rating: 4.4,
-      place: "Apartment"
+      squareFeet: 850
     }
-  ];
+];
   
-  export const getHousingListings = (): Promise<HousingListing[]> => {
+export const getHousingListings = (): Promise<HousingListing[]> => {
     // This would typically be an API call, but we're using the static data for now
     return Promise.resolve(housingListings);
-  };
+};
   
-  // Parse a natural language query into filter parameters
-  export const parseHousingQuery = (query: string): Record<string, string> => {
+// Parse a natural language query into filter parameters
+export const parseHousingQuery = (query: string): Record<string, string> => {
     const params: Record<string, string> = {};
     
     // Extract price information
@@ -203,4 +215,4 @@ export interface HousingListing {
     }
     
     return params;
-  };
+};
