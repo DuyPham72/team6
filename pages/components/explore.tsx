@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "../../Misc/ui/ToastContext";
-import { getLocalSavedListings, removeListingLocally, saveListingLocally, syncLocalSavedListings } from '../../lib/utils/localStorage';
 import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
 import Centinnial from "../../public/Assets/Centennial.jpg";

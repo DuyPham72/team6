@@ -79,7 +79,7 @@ export const housingListings: HousingListing[] = [
       price: 720,
       location: "Arlington, TX",
       rating: 4.4,
-      image: "/Assets/Arbor_Oaks.jpeg",
+      image: "/Assets/Arbor_Oaks.jpg",
       amenities: ["Study Lounge", "Community Events", "AC"],
       type: "Apartment",
       bedrooms: 1,
