@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Check, Info, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/router';
 import { useUser } from '@clerk/nextjs';
-import { useToast } from './ui/ToastContext';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, Info, X } from 'lucide-react';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import { useToast } from '../../Misc/ui/ToastContext';
 
 interface FeedbackFormProps {
   apartmentName: string;

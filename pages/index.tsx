@@ -5,7 +5,7 @@ import Navbar from "./components/Navbar";
 import TestimonialsSection from "./components/TestimonialsSection";
 
 // Lazy load the Chatbot to improve initial page load performance
-const Chatbot = lazy(() => import("./components/chatbot/Chatbot"));
+const Chatbot = lazy(() => import("./components/Chatbot"));
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

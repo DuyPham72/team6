@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Home, MapPin, Star } from "lucide-react";
-import { useToast } from "./ui/ToastContext";
+import { ArrowRight, Home, MapPin } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useToast } from "../../Misc/ui/use-toast";
 import MapModal from "./MapModal";
 
 const HeroSection = () => {
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const router = useRouter();
   const [isMapOpen, setIsMapOpen] = useState(false);
 
@@ -42,7 +42,11 @@ const HeroSection = () => {
   ];
 
   const handleExploreClick = () => {
-    showToast("Exploring listings... Loading available properties near UTA", "info");
+    toast({
+      title: "Exploring listings...",
+      description: "Loading available properties near UTA",
+      variant: "info",
+    });
     router.push("/components/explore");
   };
 

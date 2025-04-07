@@ -1,18 +1,18 @@
+import { useUser } from "@clerk/nextjs";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
-  ChevronDown,
-  ChevronUp,
   Filter,
   Heart,
   MapPin,
   MessageCircle,
   PlusCircle,
-  Search,
+  Search
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useToast } from "../../Misc/ui/ToastContext";
+import { getLocalSavedListings, removeListingLocally, saveListingLocally, syncLocalSavedListings } from '../../lib/utils/localStorage';
 import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
 import Centinnial from "../../public/Assets/Centennial.jpg";
@@ -28,9 +28,6 @@ import ReviewForm from "../components/ReviewForm";
 import ReviewsModal from "../components/ReviewsModal";
 import StarRating from "../components/StarRating";
 import Navbar from "./Navbar";
-import { useToast } from "./ui/ToastContext";
-import { getLocalSavedListings, saveListingLocally, removeListingLocally, syncLocalSavedListings } from '../../lib/utils/localStorage';
-
 
 export interface HousingOption {
   id: string;
@@ -65,16 +62,6 @@ export const housingOptions = [
     image: KC_Hall.src,
     place: "Residence Hall",
   },
-  // {
-  //   id: 3,
-  //   name: "Maverick Hall",
-  //   location: "Arlington, TX",
-  //   price: "$750/month",
-  //   rating: 4.7,
-  //   amenities: ["Security", "Game Room", "Pet Friendly"],
-  //   image: "/api/placeholder/400/250",
-  //   place: "Residence Hall",
-  // },
   {
     id: "4",
     name: "Vandergriff Hall",
@@ -366,22 +353,7 @@ export default function Explore() {
     },
   };
 
-  interface HousingOption {
-    id: string;
-    name: string;
-    location: string;
-    price: string;
-    rating: number;
-    amenities: string[];
-    image: string;
-  }
-
-
-  interface HandleCardHover {
-    (id: string): void;
-  }
-
-  const handleCardHover: HandleCardHover = (id) => {
+  const handleCardHover = (id: string) => {
     setActiveCardId(id);
   };
 
@@ -708,7 +680,10 @@ export default function Explore() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
+                        onClick={() => {
+                          setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                          setShowReviewsModal(true);
+                        }}
                         className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -719,7 +694,10 @@ export default function Explore() {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
+                          onClick={() => {
+                            setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                            setShowReviewForm(true);
+                          }}
                           className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
                           <PlusCircle className="w-4 h-4" />
@@ -831,7 +809,10 @@ export default function Explore() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
+                        onClick={() => {
+                          setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                          setShowReviewsModal(true);
+                        }}
                         className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -842,7 +823,10 @@ export default function Explore() {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => setSelectedHousing(housingOptions.find(h => h.id === option.id) || null)}
+                          onClick={() => {
+                            setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                            setShowReviewForm(true);
+                          }}
                           className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
                           <PlusCircle className="w-4 h-4" />
@@ -884,22 +868,22 @@ export default function Explore() {
 
         {/* Reviews Modal */}
         <AnimatePresence>
-          {selectedHousing && (
+          {showReviewsModal && selectedHousing && (
             <ReviewsModal
               housingId={selectedHousing.id}
               apartmentName={selectedHousing.name}
-              onClose={() => setSelectedHousing(null)}
+              onClose={() => setShowReviewsModal(false)}
             />
           )}
         </AnimatePresence>
 
         {/* Review Form Modal */}
         <AnimatePresence>
-          {selectedHousing && (
+          {showReviewForm && selectedHousing && (
             <ReviewForm
               housingId={selectedHousing.id}
               apartmentName={selectedHousing.name}
-              onClose={() => setSelectedHousing(null)}
+              onClose={() => setShowReviewForm(false)}
             />
           )}
         </AnimatePresence>
@@ -907,4 +891,3 @@ export default function Explore() {
     </>
   );
 }
-

@@ -1,16 +1,17 @@
-import { motion } from "framer-motion";
-import { Check, Info, MessageSquare, X, User } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { useUser } from "@clerk/nextjs";
-import { useToast } from "./components/ui/ToastContext";
-import Navbar from "./components/Navbar";
 import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { Check, Info, MessageSquare } from "lucide-react";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { useToast } from "../Misc/ui/use-toast";
+import Navbar from "./components/Navbar";
 
 const FeedbackPage = () => {
   const router = useRouter();
   const { user } = useUser();
-  const { showToast } = useToast();
+  const { toast } = useToast();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     type: 'suggestion',
@@ -33,7 +34,11 @@ const FeedbackPage = () => {
     e.preventDefault();
     
     if (!user) {
-      showToast("Please sign in to submit feedback", "warning");
+      toast({
+        title: "Error",
+        description: "Something went wrong! Please sign in and try again!.",
+        variant: "destructive",
+      })
       return;
     }
     
@@ -55,11 +60,19 @@ const FeedbackPage = () => {
         throw new Error('Failed to submit feedback');
       }
 
-      showToast("Thank you for your feedback!", "success");
+      toast({
+        title: "Error",
+        description: "Success!! Thank you for your feedback!",
+        variant: "destructive",
+      })
       router.push('/');
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      showToast("Failed to submit feedback. Please try again.", "error");
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again later.",
+        variant: "destructive",
+      })
     }
   };
 

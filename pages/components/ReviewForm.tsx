@@ -1,10 +1,10 @@
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Loader2, MessageSquare, Send, Star, User, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useUser, SignInButton } from "@clerk/nextjs";
-import { Switch } from "../components/ui/switch";
-import { Label } from "../components/ui/label";
+import { Label } from "../../Misc/ui/label";
+import { Switch } from "../../Misc/ui/switch";
 
 interface ReviewFormProps {
   housingId: string;
@@ -192,7 +192,7 @@ const ReviewForm = ({ housingId, apartmentName, onClose }: ReviewFormProps) => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Anonymous Toggle */}
+              {/* Anonymous Toggle - Fixed Version */}
               <div className="flex items-center justify-between bg-white/5 border border-white/10 p-3 rounded-xl">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-white/50" />
@@ -205,7 +205,7 @@ const ReviewForm = ({ housingId, apartmentName, onClose }: ReviewFormProps) => {
                   checked={isAnonymous}
                   onCheckedChange={setIsAnonymous}
                   disabled={isSubmitting}
-                  className="data-[state=checked]:bg-violet-500"
+                  className="data-[state=checked]:bg-violet-500 w-10"
                 />
               </div>
               

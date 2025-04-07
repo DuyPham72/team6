@@ -1,16 +1,16 @@
+import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Mail, MessageSquare, Phone, Send, User } from "lucide-react";
-import { useState } from "react";
 import { useRouter } from "next/router";
-import { useUser } from "@clerk/nextjs";
-import { useToast } from "./components/ui/ToastContext";
+import { useState } from "react";
+import { useToast } from "../Misc/ui/use-toast";
 import Navbar from "./components/Navbar";
-import { cn } from "@/lib/utils";
 
 const ContactPage = () => {
   const router = useRouter();
   const { user } = useUser();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -45,11 +45,11 @@ const ContactPage = () => {
         throw new Error('Failed to send message');
       }
 
-      showToast("Message sent successfully!", "success");
+      toast({ title: "Message sent successfully!", variant: "success" });
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error('Error sending message:', error);
-      showToast("Failed to send message. Please try again.", "error");
+      toast({ title: "Failed to send message. Please try again.", variant: "destructive" });
     }
   };
 

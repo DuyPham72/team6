@@ -1,6 +1,6 @@
 import { Send } from "lucide-react";
 import React, { RefObject } from "react";
-import { Button } from "../../components/ui/button";
+import { Button } from "../ui/button";
 
 interface ChatInputProps {
   value: string;

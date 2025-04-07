@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { Message } from "../../pages/components/Chatbot";
 import { BotAvatar } from "./BotAvatar";
-import { Message } from "./Chatbot";
 import { UserAvatar } from "./UserAvatar";
 
 interface ChatMessageProps {
@@ -38,7 +38,11 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             : "bg-black/60 text-white border border-white/10"
         }`}
       >
-        <p className="text-sm">{message.content}</p>
+        {typeof message.content === "string" ? (
+          <p className="text-sm">{message.content}</p>
+        ) : (
+          <p className="text-sm">{JSON.stringify(message.content)}</p> // Ensure non-string content is handled
+        )}
         <span className="text-xs text-right block mt-1 opacity-50">
           {new Date(message.timestamp).toLocaleTimeString([], {
             hour: "2-digit",

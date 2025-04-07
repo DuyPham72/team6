@@ -1,12 +1,12 @@
-import { motion } from "framer-motion";
-import { ArrowRight, Heart, MapPin, Star } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { ArrowRight, Heart, MapPin } from "lucide-react";
 import { useRouter } from "next/router";
-import { useToast } from "./components/ui/ToastContext";
+import { useEffect, useState } from "react";
+import { getLocalSavedListings } from "../lib/utils/localStorage";
+import { useToast } from "../Misc/ui/use-toast";
 import Navbar from "./components/Navbar";
 import StarRating from "./components/StarRating";
-import { getLocalSavedListings } from "../lib/utils/localStorage";
 
 interface SavedListing {
   id: string;
@@ -24,7 +24,7 @@ export default function SavedPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
   const [loading, setLoading] = useState(true);
-  const { showToast } = useToast();
+  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -50,7 +50,11 @@ export default function SavedPage() {
       setSavedListings(listings);
     } catch (error) {
       console.error('Error fetching local saved listings:', error);
-      showToast('Failed to load saved listings', 'error');
+      toast({
+        title: "Error",
+        description: "Failed to load saved listings!",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false);
     }
@@ -88,11 +92,19 @@ export default function SavedPage() {
         setSavedListings(validListings);
       } else {
         console.error("Failed to fetch saved listings:", await response.text());
-        showToast("Failed to load saved listings", "error");
+        toast({
+          title: "Error",
+          description: "Failed to load saved listings!",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("Error fetching saved listings:", error);
-      showToast("Failed to load saved listings", "error");
+      toast({
+        title: "Error",
+        description: "Failed to saved listings! Please try again later.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false);
     }
@@ -111,20 +123,32 @@ export default function SavedPage() {
 
         if (response.ok) {
           setSavedListings(savedListings.filter((listing) => listing.id !== listingId));
-          showToast("Listing removed from saved", "success");
+          toast({
+            title: "Error",
+            description: "Listing removed from saved!",
+            variant: "destructive",
+          })
         } else {
           throw new Error("Failed to remove listing");
         }
       } catch (error) {
         console.error("Error removing saved listing:", error);
-        showToast("Failed to remove listing", "error");
+        toast({
+          title: "Error",
+          description: "Failed to remove listing! Please try again later.",
+          variant: "destructive",
+        })
       }
     } else {
       // For non-authenticated users, remove from local storage
       const localSavedIds = getLocalSavedListings();
       localStorage.setItem('saved_listings', JSON.stringify(localSavedIds.filter(id => id !== listingId)));
       setSavedListings(savedListings.filter((listing) => listing.id !== listingId));
-      showToast("Listing removed from saved", "success");
+      toast({
+        title: "Error",
+        description: "Listing removed from saved!",
+        variant: "destructive",
+      })
     }
   };
 

@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils";
 import { MessageSquare, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { useLocalStorage } from "../../../lib/use-local-storage";
-import { Button } from "../../components/ui/button";
-import { BotAvatar } from "./BotAvatar";
-import { processUserMessage } from "./chatbotUtils";
-import { ChatInput } from "./ChatInput";
-import { ChatMessage } from "./ChatMessage";
+import { useEffect, useRef, useState } from "react";
+import { useLocalStorage } from "../../lib/use-local-storage";
+import { BotAvatar } from "../../Misc/chatbot/BotAvatar";
+import { processUserMessage } from "../../Misc/chatbot/chatbotUtils";
+import { ChatInput } from "../../Misc/chatbot/ChatInput";
+import { ChatMessage } from "../../Misc/chatbot/ChatMessage";
+import { Button } from "../../Misc/ui/button";
 
-import { useToast } from "../../components/ui/ToastContext";
+import { useToast } from "../../Misc/ui/ToastContext";
 
 export type Message = {
   id: string;
