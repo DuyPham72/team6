@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpeg";
+import { useToast } from "../../Misc/ui/ToastContext";
+import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
 import Centinnial from "../../public/Assets/Centennial.jpg";
 import Height_At_Pecan from "../../public/Assets/Height_At_Pecan.png";
@@ -245,10 +246,10 @@ export default function Explore() {
     if (isSignedIn) {
       // If user is signed in, fetch saved listings from server and sync local storage
       fetchSavedListings();
-      syncLocalSavedListings(user?.id || '');
+      //syncLocalSavedListings(user?.id || '');
     } else {
       // If user is not signed in, use local storage
-      setSavedListings(getLocalSavedListings());
+      //setSavedListings(getLocalSavedListings());
     }
   }, [isSignedIn, user?.id]);
 
@@ -295,15 +296,15 @@ export default function Explore() {
       }
     } else {
       // Handle local storage for non-authenticated users
-      if (isSaved) {
-        removeListingLocally(listingId);
-        setSavedListings(savedListings.filter((id) => id !== listingId));
-        showToast('Listing removed from saved', 'success');
-      } else {
-        saveListingLocally(listingId);
-        setSavedListings([...savedListings, listingId]);
-        showToast('Listing saved locally', 'info');
-      }
+      // if (isSaved) {
+      //   removeListingLocally(listingId);
+      //   setSavedListings(savedListings.filter((id) => id !== listingId));
+      //   showToast('Listing removed from saved', 'success');
+      // } else {
+      //   saveListingLocally(listingId);
+      //   setSavedListings([...savedListings, listingId]);
+      //   showToast('Listing saved locally', 'info');
+      // }
     }
   };
 
@@ -889,3 +890,4 @@ export default function Explore() {
     </>
   );
 }
+
