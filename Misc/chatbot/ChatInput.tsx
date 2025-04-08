@@ -35,11 +35,12 @@ export const ChatInput = ({
         <Button
           onClick={onSend}
           disabled={disabled || !value.trim()}
-          className={`absolute right-1.5 rounded-full w-9 h-9 flex items-center justify-center ${
+          className={`rounded-full w-9 h-9 flex items-center justify-center ${
             !value.trim() || disabled
               ? "bg-gray-700 text-gray-400"
               : "bg-violet-600 text-white hover:bg-violet-500"
           }`}
+          style={{marginLeft: '8px', marginRight: '8px'}}
           aria-label="Send message"
         >
           <Send className="h-4 w-4" />
