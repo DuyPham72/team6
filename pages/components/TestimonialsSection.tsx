@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 
 interface Review {
   _id?: string;
-  housingId: number;
+  housingId: string;
   userId?: string;
   name?: string;
   rating: number;
@@ -12,13 +12,14 @@ interface Review {
   location?: string;
   date?: string;
   userImage?: string;
+  apartmentName?: string;
 }
 
 // Transform API review to testimonial format
 const mapReviewToTestimonial = (review: Review) => ({
   quote: review.comment,
   author: review.name || "Anonymous User",
-  location: review.location || "UTA Campus",
+  location: review.apartmentName || "UTA Campus",
   rating: review.rating,
   image: review.userImage || undefined
 });
@@ -48,11 +49,7 @@ const fallbackTestimonials = [
   }
 ];
 
-interface TestimonialsSectionProps {
-  housingId?: number;
-}
-
-const TestimonialsSection = ({ housingId = 1 }: TestimonialsSectionProps) => {
+const TestimonialsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +62,8 @@ const TestimonialsSection = ({ housingId = 1 }: TestimonialsSectionProps) => {
     const fetchTestimonials = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/getReviews?housingId=${housingId}`);
+        // Fetch reviews from all housing options
+        const response = await fetch('/api/getReviews');
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
@@ -74,12 +72,26 @@ const TestimonialsSection = ({ housingId = 1 }: TestimonialsSectionProps) => {
         const data = await response.json();
         
         if (data.reviews && Array.isArray(data.reviews) && data.reviews.length > 0) {
-          const mappedTestimonials = data.reviews.map(mapReviewToTestimonial);
+          // Sort reviews by rating (highest first) and date (most recent first)
+          const sortedReviews = data.reviews
+            .sort((a: Review, b: Review) => {
+              // First sort by rating (highest first)
+              if (b.rating !== a.rating) {
+                return b.rating - a.rating;
+              }
+              // Then by date (most recent first)
+              const dateA = a.date ? new Date(a.date).getTime() : 0;
+              const dateB = b.date ? new Date(b.date).getTime() : 0;
+              return dateB - dateA;
+            })
+            .slice(0, 10); // Take top 10 reviews
+
+          const mappedTestimonials = sortedReviews.map(mapReviewToTestimonial);
           setTestimonials(mappedTestimonials);
-          setTotalReviews(mappedTestimonials.length);
+          setTotalReviews(data.reviews.length);
           setApiError(null);
         } else {
-          console.warn('No reviews found for this housing. Using fallback testimonials.');
+          console.warn('No reviews found. Using fallback testimonials.');
           setTotalReviews(fallbackTestimonials.length);
         }
       } catch (err) {
@@ -92,7 +104,7 @@ const TestimonialsSection = ({ housingId = 1 }: TestimonialsSectionProps) => {
     };
 
     fetchTestimonials();
-  }, [housingId]);
+  }, []);
 
   // Auto-rotation logic
   useEffect(() => {

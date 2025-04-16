@@ -1,4 +1,4 @@
-import { SignInButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Loader2, MessageSquare, Send, Star, User, X } from "lucide-react";
 import { useState } from "react";
@@ -6,18 +6,31 @@ import { toast } from "sonner";
 import { Label } from "../../Misc/ui/label";
 import { Switch } from "../../Misc/ui/switch";
 
-interface ReviewFormProps {
+interface EditReviewFormProps {
+  reviewId: string;
   housingId: string;
   apartmentName: string;
+  initialComment: string;
+  initialRating: number;
+  initialIsAnonymous: boolean;
   onClose: () => void;
-  onReviewSubmitted?: () => void;
+  onReviewUpdated?: () => void;
 }
 
-const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: ReviewFormProps) => {
+const EditReviewForm = ({ 
+  reviewId, 
+  housingId, 
+  apartmentName, 
+  initialComment, 
+  initialRating, 
+  initialIsAnonymous,
+  onClose, 
+  onReviewUpdated 
+}: EditReviewFormProps) => {
   const { isSignedIn, user } = useUser();
-  const [comment, setComment] = useState("");
-  const [rating, setRating] = useState(5);
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [comment, setComment] = useState(initialComment);
+  const [rating, setRating] = useState(initialRating);
+  const [isAnonymous, setIsAnonymous] = useState(initialIsAnonymous);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
@@ -25,7 +38,7 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
     e.preventDefault();
     
     if (!isSignedIn) {
-      toast.error("Please sign in to submit a review");
+      toast.error("Please sign in to update your review");
       return;
     }
     
@@ -39,41 +52,36 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
     try {
       // Get user information from Clerk
       const name = isAnonymous ? "Anonymous" : user?.fullName || user?.firstName || "User";
-      const email = user?.primaryEmailAddress?.emailAddress || "";
       
-      // Simulate loading time for demonstration
       const response = await fetch('/api/reviews', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          housingId,
-          apartmentName,
-          name,
-          email,
+          reviewId,
           comment,
           rating,
           isAnonymous,
-          userId: user?.id
         }),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to submit review');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update review');
       }
       
-      toast.success("Review submitted successfully!");
+      toast.success("Review updated successfully!");
       
       // Call the callback to refresh reviews if provided
-      if (onReviewSubmitted) {
-        onReviewSubmitted();
+      if (onReviewUpdated) {
+        onReviewUpdated();
       }
       
       onClose();
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error("Failed to submit review. Please try again.");
+      console.error('Error updating review:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to update review. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -134,9 +142,9 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
           
           <h2 className="text-2xl font-bold text-white flex items-center">
             <Star className="h-6 w-6 mr-2 text-yellow-300 fill-yellow-300" />
-            Rate Your Experience
+            Edit Your Review
           </h2>
-          <p className="text-white/80 mt-1">at {apartmentName}</p>
+          <p className="text-white/80 mt-1">for {apartmentName}</p>
           
           {/* User Info - Show only if signed in */}
           {isSignedIn && (
@@ -184,23 +192,20 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
         <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-b-2xl">
           {!isSignedIn ? (
             <div className="text-center p-6">
-              <h3 className="text-white text-lg mb-4">Sign in to leave a review</h3>
+              <h3 className="text-white text-lg mb-4">Sign in to edit your review</h3>
               <p className="text-white/70 mb-6 text-sm">
-                We use your account information to verify real reviews and prevent spam.
+                You need to be signed in to edit your review.
               </p>
-              <SignInButton mode="modal">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40"
-                >
-                  Sign In to Continue
-                </motion.button>
-              </SignInButton>
+              <button
+                onClick={onClose}
+                className="px-6 py-3 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40"
+              >
+                Close
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Anonymous Toggle - Fixed Version */}
+              {/* Anonymous Toggle */}
               <div className="flex items-center justify-between bg-white/5 border border-white/10 p-3 rounded-xl">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-white/50" />
@@ -262,11 +267,11 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
                     >
                       <Loader2 className="h-5 w-5 mr-2" />
                     </motion.div>
-                    <span>Submitting...</span>
+                    <span>Updating...</span>
                   </>
                 ) : (
                   <>
-                    <span>Submit Review</span>
+                    <span>Update Review</span>
                     <Send size={18} className="ml-1" />
                   </>
                 )}
@@ -292,22 +297,14 @@ const ReviewForm = ({ housingId, apartmentName, onClose, onReviewSubmitted }: Re
                 />
               </div>
               <p className="text-white/50 text-xs text-center mt-2">
-                Please wait while we process your review
+                Please wait while we update your review
               </p>
             </div>
           )}
-          
-          {/* Privacy Notice */}
-          <p className="text-white/50 text-xs text-center mt-6">
-            Your review helps future residents make informed decisions.
-            {isSignedIn && !isAnonymous ? 
-              " Your name will be displayed with your review." : 
-              " Your identity will remain anonymous."}
-          </p>
         </div>
       </motion.div>
     </motion.div>
   );
 };
 
-export default ReviewForm;
+export default EditReviewForm; 

@@ -6,16 +6,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { housingId } = req.query;
       
-      if (!housingId) {
-        return res.status(400).json({ message: "Missing housingId parameter" });
-      }
-
       // Connect to MongoDB
       const client = await clientPromise;
       const db = client.db("uta-housing");
 
-      // Fetch reviews for the given housingId
-      const reviews = await db.collection("reviews").find({ housingId: Number(housingId) }).toArray();
+      // Build the query based on whether housingId is provided
+      const query = housingId ? { housingId: housingId } : {};
+
+      // Fetch reviews with all necessary fields
+      const reviews = await db.collection("reviews")
+        .find(query)
+        .project({
+          _id: 1,
+          userId: 1,
+          housingId: 1,
+          rating: 1,
+          comment: 1,
+          isAnonymous: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          name: 1,
+          apartmentName: 1
+        })
+        .toArray();
 
       return res.status(200).json({ reviews });
     } catch (error) {
