@@ -3,7 +3,6 @@ import { ArrowRight, Home, MapPin } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useToast } from "../../Misc/ui/use-toast";
-import MapModal from "./MapModal";
 
 const HeroSection = () => {
   const { toast } = useToast();
@@ -36,17 +35,18 @@ const HeroSection = () => {
   };
 
   const stats = [
-    { label: "Housing Options", value: "12+" },
+    { label: "Housing Options", value: "10+" },
     { label: "Average Rating", value: "4.5" },
     { label: "Locations", value: "5+" }
   ];
 
   const handleExploreClick = () => {
-    toast({
-      title: "Exploring listings...",
-      description: "Loading available properties near UTA",
-      variant: "info",
-    });
+    toast(
+      <div className="flex flex-col gap-1">
+        <div className="font-medium">Exploring listings...</div>
+        <div className="text-sm text-white/70">Loading available properties near UTA</div>
+      </div>
+    );
     router.push("/components/explore");
   };
 
@@ -116,18 +116,6 @@ const HeroSection = () => {
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </span>
                 </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleMapClick}
-                  className="group px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    View Map
-                  </span>
-                </motion.button>
               </motion.div>
 
               {/* Stats Section */}
@@ -162,8 +150,6 @@ const HeroSection = () => {
           className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-violet-500/20 to-transparent pointer-events-none"
         />
       </motion.section>
-
-      <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
     </>
   );
 };

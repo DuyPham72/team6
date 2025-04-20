@@ -11,11 +11,12 @@ import {
   BedDouble,
   Bath,
   Ruler,
-  Calendar
+  Calendar,
+  Scale
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "../../Misc/ui/ToastContext";
+import { toast } from "sonner";
 import { getLocalSavedListings, saveListingLocally, removeListingLocally } from "../../lib/utils/localStorage";
 import Arbor_Oaks from "../../public/Assets/Arbor_Oaks.jpg";
 import Arlinton_Hall from "../../public/Assets/Arlington_Hall.png";
@@ -33,6 +34,8 @@ import ReviewsModal from "../components/ReviewsModal";
 import StarRating from "../components/StarRating";
 import Navbar from "./Navbar";
 import Loader from "../../components/ui/Loader";
+import SearchFilters from "./SearchFilters";
+import ComparisonModal from "./ComparisonModal";
 
 export interface HousingOption {
   id: string;
@@ -54,7 +57,7 @@ export const housingOptions = [
   {
     id: "1",
     name: "Arlington Hall",
-    location: "Arlington, TX",
+    location: "600 Spaniolo Dr, Arlington, TX 76010",
     price: "$800/month",
     amenities: ["Wi-Fi", "Fitness Center", "Pool"],
     image: Arlinton_Hall.src,
@@ -67,7 +70,7 @@ export const housingOptions = [
   {
     id: "2",
     name: "KC Hall",
-    location: "Arlington, TX",
+    location: "901 S Oak St, Arlington, TX 76010",
     price: "$900/month",
     amenities: ["Parking", "Study Rooms", "Laundry"],
     image: KC_Hall.src,
@@ -80,7 +83,7 @@ export const housingOptions = [
   {
     id: "4",
     name: "Vandergriff Hall",
-    location: "Arlington, TX",
+    location: "587 Spaniolo Dr, Arlington, TX 76010",
     price: "$850/month",
     amenities: ["Shuttle Service", "Utilities Included", "Furnished"],
     image: Vandergriff_Hall.src,
@@ -93,7 +96,7 @@ export const housingOptions = [
   {
     id: "5",
     name: "West Hall",
-    location: "Arlington, TX",
+    location: "916 UTA Blvd, Arlington, TX 76013",
     price: "$700/month",
     amenities: ["On-Campus", "Meal Plan", "24/7 Support"],
     image: West_Hall.src,
@@ -106,7 +109,7 @@ export const housingOptions = [
   {
     id: "6",
     name: "Arbor Oaks",
-    location: "Arlington, TX",
+    location: "1000 - 1008 Greek Row Dr., Arlington, Texas 76013.",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Arbor_Oaks.src,
@@ -119,7 +122,7 @@ export const housingOptions = [
   {
     id: "7",
     name: "The Heights on Pecan",
-    location: "Arlington, TX",
+    location: "1225 S Pecan St, Arlington, TX 76010",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Height_At_Pecan.src,
@@ -132,7 +135,7 @@ export const housingOptions = [
   {
     id: "8",
     name: "The Lofts",
-    location: "Arlington, TX",
+    location: "500 S Center St, Arlington, TX 76010",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Loft.src,
@@ -145,7 +148,7 @@ export const housingOptions = [
   {
     id: "9",
     name: "Meadow Run",
-    location: "Arlington, TX",
+    location: "501 Summit Ave, Arlington, TX 76013",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Meadow_Run.src,
@@ -158,7 +161,7 @@ export const housingOptions = [
   {
     id: "10",
     name: "Timber Brook",
-    location: "Arlington, TX",
+    location: "400 - 410 Kerby St., Arlington, Texas 76013",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Timber_Brook.src,
@@ -171,20 +174,25 @@ export const housingOptions = [
   {
     id: "11",
     name: "University Village",
-    location: "Arlington, TX",
-    price: "$720/month",
-    amenities: ["Study Lounge", "Community Events", "AC"],
+    location: "914 Greek Row Dr, Arlington, TX 76013",
+    price: "$890/month",
+    amenities: [
+      "Utilities Included",
+      "Walk-in Closets",
+      "High-speed Internet",
+      "Click View Details to see more"
+    ],
     image: University_Village.src,
     place: "Apartment",
-    bedrooms: 4,
-    bathrooms: 3,
-    squareFeet: 2000,
+    bedrooms: 1,
+    bathrooms: 1,
+    squareFeet: 530,
     leaseLength: "12 months",
   },
   {
     id: "12",
     name: "Centennial Court (Privately Owned)",
-    location: "Arlington, TX",
+    location: "700 W Mitchell Cir, Arlington, TX 76013",
     price: "$720/month",
     amenities: ["Study Lounge", "Community Events", "AC"],
     image: Centinnial.src,
@@ -212,9 +220,16 @@ export default function Explore() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [housingRatings, setHousingRatings] = useState<Record<string, number>>({});
-  const { showToast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [filterPreferences, setFilterPreferences] = useState({
+    priceRange: [500, 2000],
+    amenities: [],
+    minRating: 0,
+    availability: true
+  });
+  const [selectedForComparison, setSelectedForComparison] = useState<HousingOption[]>([]);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
 
   const scrollRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -288,20 +303,32 @@ export default function Explore() {
 
   // Initialize saved listings from local storage
   useEffect(() => {
-    const localSavedListings = getLocalSavedListings();
-    setSavedListings(localSavedListings);
-    
-    // If user is signed in, also fetch from server
+    const initializeSavedListings = async () => {
     if (isSignedIn) {
-      fetchSavedListings().then((serverListings: string[] | null) => {
-        if (serverListings && serverListings.length > 0) {
-          const mergedListings = Array.from(new Set([...localSavedListings, ...serverListings]));
-          setSavedListings(mergedListings);
+        try {
+          // If user is signed in, fetch from server only
+          const response = await fetch('/api/saved');
+          if (response.ok) {
+            const data = await response.json();
+            const serverListings = data.map((item: { listingId: string }) => item.listingId);
+            setSavedListings(serverListings);
+            // Clear local storage when using server data
+            localStorage.removeItem('saved_listings');
+    } else {
+            setSavedListings([]);
+          }
+        } catch (error) {
+          console.error('Error fetching saved listings:', error);
+          setSavedListings([]);
         }
-      });
-    }
-    
-    // Fetch ratings for all housing options
+      } else {
+        // If not signed in, only use local storage
+        const localSavedListings = getLocalSavedListings();
+        setSavedListings(localSavedListings);
+      }
+    };
+
+    initializeSavedListings();
     fetchAllHousingRatings();
   }, [isSignedIn]);
 
@@ -409,7 +436,7 @@ export default function Explore() {
   const handleSaveListing = async (listingId: string) => {
     const isSaved = savedListings.includes(listingId);
 
-    try {
+      try {
       if (isSignedIn) {
         // If user is signed in, try to save to server first
         const response = await fetch('/api/saved', {
@@ -421,41 +448,32 @@ export default function Explore() {
         });
 
         if (response.ok) {
-          // Update both server and local storage on success
+          // Update state based on server response
           if (isSaved) {
-            removeListingLocally(listingId);
             setSavedListings(prev => prev.filter(id => id !== listingId));
-            showToast('Listing removed from saved', 'success');
+            toast.success("Listing removed from saved");
           } else {
-            saveListingLocally(listingId);
             setSavedListings(prev => [...prev, listingId]);
-            showToast('Listing saved successfully', 'success');
+            toast.success("Listing saved successfully!");
           }
+        } else {
+          throw new Error('Failed to update saved listing');
         }
       } else {
         // For non-authenticated users, only use local storage
         if (isSaved) {
           removeListingLocally(listingId);
           setSavedListings(prev => prev.filter(id => id !== listingId));
-          showToast('Listing removed from saved', 'success');
+          toast.success("Listing removed from saved");
         } else {
           saveListingLocally(listingId);
           setSavedListings(prev => [...prev, listingId]);
-          showToast('Listing saved', 'success');
+          toast.success("Listing saved locally");
         }
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error('Error handling save:', error);
-      // Fallback to local storage if server operation fails
-      if (isSaved) {
-        removeListingLocally(listingId);
-        setSavedListings(prev => prev.filter(id => id !== listingId));
-        showToast('Listing removed from saved', 'success');
-      } else {
-        saveListingLocally(listingId);
-        setSavedListings(prev => [...prev, listingId]);
-        showToast('Listing saved locally', 'success');
-      }
+      toast.error("Failed to update saved listing. Please try again.");
     }
   };
 
@@ -551,6 +569,53 @@ export default function Explore() {
 
   const handleCardHover = (id: string) => {
     setActiveCardId(id);
+  };
+
+  const handleFilterChange = (filters: any) => {
+    setFilterPreferences(filters);
+    // Apply filters to the housing options
+    const filtered = housingOptions.filter((option) => {
+      // Price filter
+      const price = parseInt(option.price.replace(/[^0-9]/g, ''));
+      if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
+        return false;
+      }
+
+      // Rating filter
+      const rating = housingRatings[option.id] || 0;
+      if (rating < filters.minRating) {
+        return false;
+      }
+
+      // Amenities filter
+      if (filters.amenities.length > 0) {
+        const hasAllAmenities = filters.amenities.every((amenity: string) =>
+          option.amenities.includes(amenity)
+        );
+        if (!hasAllAmenities) {
+          return false;
+        }
+      }
+
+      // Availability filter (assuming all are available for now)
+      if (filters.availability) {
+        // You can add availability check here if you have that data
+      }
+
+      return true;
+    });
+
+    setFilteredOptions(filtered);
+  };
+
+  const handleCompareClick = (housing: HousingOption) => {
+    if (selectedForComparison.length < 3 && !selectedForComparison.find(h => h.id === housing.id)) {
+      setSelectedForComparison([...selectedForComparison, housing]);
+    }
+  };
+
+  const handleRemoveFromComparison = (housingId: string) => {
+    setSelectedForComparison(selectedForComparison.filter(h => h.id !== housingId));
   };
 
   return (
@@ -700,67 +765,8 @@ export default function Explore() {
                     variants={filterVariants}
                     className="overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-white/10">
-                      <div>
-                        <label className="block text-white/70 mb-2">Price Range</label>
-                        <select
-                          value={priceFilter}
-                          onChange={(e) => setPriceFilter(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                        >
-                          <option className="bg-violet-500 text-white font-medium" value="">
-                            Any Price
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="700">
-                            Up to $700
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="800">
-                            Up to $800
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="900">
-                            Up to $900
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="1000">
-                            Up to $1000
-                          </option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-white/70 mb-2">Place Type</label>
-                        <select
-                          value={placeFilter}
-                          onChange={(e) => setPlaceFilter(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                        >
-                          <option className="bg-violet-500 text-white font-medium" value="">
-                            Any Type
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="Residence Hall">
-                            Residence Hall
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="Apartment">
-                            Apartment
-                          </option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-white/70 mb-2">Sort By</label>
-                        <select
-                          value={sortOrder}
-                          onChange={(e) => setSortOrder(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                        >
-                          <option className="bg-violet-500 text-white font-medium" value="rating">
-                            Highest Rating
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="price-low">
-                            Price: Low to High
-                          </option>
-                          <option className="bg-violet-500 text-white font-medium" value="price-high">
-                            Price: High to Low
-                          </option>
-                        </select>
-                      </div>
+                    <div className="mt-6 pt-6 border-t border-white/10 bg-white/10 rounded-xl p-4">
+                      <SearchFilters onFilterChange={handleFilterChange} />
                     </div>
                   </motion.div>
                 )}
@@ -794,126 +800,140 @@ export default function Explore() {
                 </div>
               ) : (
                 filteredOptions.map((option) => (
-                  <motion.div
-                    key={option.id}
-                    variants={item}
-                    onHoverStart={() => handleCardHover(option.id)}
-                    onHoverEnd={() => setActiveCardId(null)}
-                    whileHover={{
-                      y: -5,
-                      transition: { duration: 0.2 },
-                    }}
-                    className={`relative group rounded-2xl overflow-hidden transition-all duration-300 ${
-                      activeCardId === option.id
-                        ? "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20"
-                        : "bg-white/5 backdrop-blur-md border border-white/10 hover:border-violet-500/50"
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={option.image}
-                        alt={option.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                      <div className="absolute top-3 right-3 flex items-center gap-2">
+                <motion.div
+                  key={option.id}
+                  variants={item}
+                  onHoverStart={() => handleCardHover(option.id)}
+                  onHoverEnd={() => setActiveCardId(null)}
+                  whileHover={{
+                    y: -5,
+                    transition: { duration: 0.2 },
+                  }}
+                  className={`relative group rounded-2xl overflow-hidden transition-all duration-300 ${
+                    activeCardId === option.id
+                      ? "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20"
+                      : "bg-white/5 backdrop-blur-md border border-white/10 hover:border-violet-500/50"
+                  }`}
+                >
+                  {/* Image */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={option.image}
+                      alt={option.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
                         {housingRatings[option.id] !== undefined ? (
                           <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg flex items-center gap-1">
                             <StarRating rating={housingRatings[option.id] || 0} size={16} />
-                          </div>
+                      </div>
                         ) : (
                           <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg text-white/60 text-sm">
                             No reviews
                           </div>
                         )}
-                        <button
-                          onClick={() => handleSaveListing(option.id)}
-                          className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
-                        >
-                          <Heart
-                            className={`w-5 h-5 ${
-                              savedListings.includes(option.id)
-                                ? "text-violet-400 fill-current"
-                                : "text-white/80"
-                            }`}
-                          />
-                        </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompareClick(option);
+                        }}
+                        className={`p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300 ${
+                          selectedForComparison.find(h => h.id === option.id) ? 'text-violet-400' : 'text-white/80'
+                        }`}
+                      >
+                        <Scale className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveListing(option.id);
+                        }}
+                        className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            savedListings.includes(option.id)
+                              ? "text-violet-400 fill-current"
+                              : "text-white/80"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="relative p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-white mb-2 group-hover:text-violet-400 transition-colors duration-300">
+                          {option.name}
+                        </h2>
+                        <div className="flex items-center text-white/60 space-x-2">
+                          <MapPin className="w-4 h-4" />
+                          <span className="text-sm">{option.location}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="relative p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h2 className="text-xl font-bold text-white mb-2 group-hover:text-violet-400 transition-colors duration-300">
-                            {option.name}
-                          </h2>
-                          <div className="flex items-center text-white/60 space-x-2">
-                            <MapPin className="w-4 h-4" />
-                            <span className="text-sm">{option.location}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Amenities */}
+                    {/* Amenities */}
                       <div className="flex flex-wrap gap-3 mt-4">
-                        {option.amenities.map((amenity, index) => (
-                          <span
-                            key={index}
+                      {option.amenities.map((amenity, index) => (
+                        <span
+                          key={index}
                             className="px-3 py-1 text-xs font-medium text-white/80 bg-white/10 rounded-full"
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                      </div>
+                        >
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
 
                       <div className="flex justify-between items-center mt-6 mb-6">
-                        <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                          {option.price}
-                        </p>
-                      </div>
+                      <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+                        {option.price}
+                      </p>
+                    </div>
 
-                      <div className="flex flex-wrap gap-3">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleViewDetails(option.id)}
-                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl transition-all duration-300 shadow-lg shadow-violet-600/20"
-                        >
-                          <span>View Details</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </motion.button>
+                    <div className="flex flex-wrap gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleViewDetails(option.id)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl transition-all duration-300 shadow-lg shadow-violet-600/20"
+                      >
+                        <span>View Details</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </motion.button>
 
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                          setShowReviewsModal(true);
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Reviews</span>
+                      </motion.button>
+
+                      {isSignedIn && (
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
-                            setShowReviewsModal(true);
+                            setShowReviewForm(true);
                           }}
-                          className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
+                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>Reviews</span>
+                          <PlusCircle className="w-4 h-4" />
+                          <span>Add Review</span>
                         </motion.button>
-
-                        {isSignedIn && (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
-                              setShowReviewForm(true);
-                            }}
-                            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
-                          >
-                            <PlusCircle className="w-4 h-4" />
-                            <span>Add Review</span>
-                          </motion.button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </motion.div>
+                  </div>
+                </motion.div>
                 ))
               )}
             </motion.div>
@@ -933,81 +953,95 @@ export default function Explore() {
                 </div>
               ) : (
                 filteredOptions.map((option) => (
-                  <motion.div
-                    key={option.id}
-                    variants={item}
-                    onHoverStart={() => handleCardHover(option.id)}
-                    onHoverEnd={() => setActiveCardId(null)}
-                    whileHover={{
-                      x: 5,
-                      transition: { duration: 0.2 },
-                    }}
-                    className={`relative flex flex-col md:flex-row rounded-2xl overflow-hidden transition-all duration-300 ${
-                      activeCardId === option.id
-                        ? "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20"
-                        : "bg-white/5 backdrop-blur-md border border-white/10 hover:border-violet-500/50"
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="relative w-full md:w-1/3 h-48 md:h-auto overflow-hidden">
-                      <img
-                        src={option.image}
-                        alt={option.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-gradient-to-r" />
-                      <div className="absolute top-3 right-3 flex items-center gap-2">
+                <motion.div
+                  key={option.id}
+                  variants={item}
+                  onHoverStart={() => handleCardHover(option.id)}
+                  onHoverEnd={() => setActiveCardId(null)}
+                  whileHover={{
+                    x: 5,
+                    transition: { duration: 0.2 },
+                  }}
+                  className={`relative flex flex-col md:flex-row rounded-2xl overflow-hidden transition-all duration-300 ${
+                    activeCardId === option.id
+                      ? "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20"
+                      : "bg-white/5 backdrop-blur-md border border-white/10 hover:border-violet-500/50"
+                  }`}
+                >
+                  {/* Image */}
+                  <div className="relative w-full md:w-1/3 h-48 md:h-auto overflow-hidden">
+                    <img
+                      src={option.image}
+                      alt={option.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-gradient-to-r" />
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
                         {housingRatings[option.id] !== undefined ? (
                           <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg flex items-center gap-1">
                             <StarRating rating={housingRatings[option.id] || 0} size={16} />
-                          </div>
+                      </div>
                         ) : (
                           <div className="bg-black/60 backdrop-blur-md py-1 px-2 rounded-lg text-white/60 text-sm">
                             No reviews
                           </div>
                         )}
-                        <button
-                          onClick={() => handleSaveListing(option.id)}
-                          className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
-                        >
-                          <Heart
-                            className={`w-5 h-5 ${
-                              savedListings.includes(option.id)
-                                ? "text-violet-400 fill-current"
-                                : "text-white/80"
-                            }`}
-                          />
-                        </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompareClick(option);
+                        }}
+                        className={`p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300 ${
+                          selectedForComparison.find(h => h.id === option.id) ? 'text-violet-400' : 'text-white/80'
+                        }`}
+                      >
+                        <Scale className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveListing(option.id);
+                        }}
+                        className="p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 transition-colors duration-300"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            savedListings.includes(option.id)
+                              ? "text-violet-400 fill-current"
+                              : "text-white/80"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="relative p-6 flex-grow">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-white mb-2 group-hover:text-violet-400 transition-colors duration-300">
+                          {option.name}
+                        </h2>
+                          <div className="flex items-center text-white/60 space-x-2">
+                          <MapPin className="w-4 h-4" />
+                          <span className="text-sm">{option.location}</span>
+                        </div>
                       </div>
+                      <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+                        {option.price}
+                      </p>
                     </div>
 
-                    <div className="relative p-6 flex-grow">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h2 className="text-xl font-bold text-white mb-2 group-hover:text-violet-400 transition-colors duration-300">
-                            {option.name}
-                          </h2>
-                          <div className="flex items-center text-white/60 space-x-2">
-                            <MapPin className="w-4 h-4" />
-                            <span className="text-sm">{option.location}</span>
-                          </div>
-                        </div>
-                        <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                          {option.price}
-                        </p>
-                      </div>
-
-                      {/* Amenities */}
+                    {/* Amenities */}
                       <div className="flex flex-wrap gap-3 mt-4">
-                        {option.amenities.map((amenity, index) => (
-                          <span
-                            key={index}
+                      {option.amenities.map((amenity, index) => (
+                        <span
+                          key={index}
                             className="px-3 py-1 text-xs font-medium text-white/80 bg-white/10 rounded-full"
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                      </div>
+                        >
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
 
                       <div className="flex justify-between items-center mt-6 mb-6">
                         <p className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
@@ -1016,46 +1050,46 @@ export default function Explore() {
                       </div>
 
                       <div className="flex flex-wrap gap-3">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleViewDetails(option.id)}
-                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl transition-all duration-300 shadow-lg shadow-violet-600/20"
-                        >
-                          <span>View Details</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleViewDetails(option.id)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl transition-all duration-300 shadow-lg shadow-violet-600/20"
+                      >
+                        <span>View Details</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </motion.button>
 
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
+                          setShowReviewsModal(true);
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Reviews</span>
+                      </motion.button>
+
+                      {isSignedIn && (
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
-                            setShowReviewsModal(true);
+                            setShowReviewForm(true);
                           }}
-                          className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors duration-300"
+                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
                         >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>Reviews</span>
+                          <PlusCircle className="w-4 h-4" />
+                          <span>Add Review</span>
                         </motion.button>
-
-                        {isSignedIn && (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              setSelectedHousing(housingOptions.find(h => h.id === option.id) || null);
-                              setShowReviewForm(true);
-                            }}
-                            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl transition-colors duration-300 shadow-lg shadow-emerald-600/20"
-                          >
-                            <PlusCircle className="w-4 h-4" />
-                            <span>Add Review</span>
-                          </motion.button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </motion.div>
+                  </div>
+                </motion.div>
                 ))
               )}
             </motion.div>
@@ -1111,6 +1145,47 @@ export default function Explore() {
             />
           )}
         </AnimatePresence>
+
+        {/* Add comparison section */}
+        {selectedForComparison.length > 0 && (
+          <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg z-40">
+            <div className="flex items-center gap-4">
+              <div className="flex -space-x-2">
+                {selectedForComparison.map((housing) => (
+                  <div
+                    key={housing.id}
+                    className="relative group"
+                  >
+                    <img
+                      src={housing.image}
+                      alt={housing.name}
+                      className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                    />
+                    <button
+                      onClick={() => handleRemoveFromComparison(housing.id)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setIsComparisonModalOpen(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Compare ({selectedForComparison.length})
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Add ComparisonModal */}
+        <ComparisonModal
+          isOpen={isComparisonModalOpen}
+          onClose={() => setIsComparisonModalOpen(false)}
+          selectedHousing={selectedForComparison}
+        />
       </div>
     </>
   );

@@ -8,8 +8,7 @@ import { processUserMessage } from "../../Misc/chatbot/chatbotUtils";
 import { ChatInput } from "../../Misc/chatbot/ChatInput";
 import { ChatMessage } from "../../Misc/chatbot/ChatMessage";
 import { Button } from "../../Misc/ui/button";
-
-import { useToast } from "../../Misc/ui/ToastContext";
+import { useToast } from "../../lib/use-toast";
 
 export type Message = {
   id: string;
@@ -26,21 +25,28 @@ export const Chatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { showToast } = useToast();
+  const { toast } = useToast();
   
   // Initial greeting message if no messages exist
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: "welcome",
-          role: "bot",
-          content: "Hi there! I'm your housing assistant. How can I help you today?",
-          timestamp: Date.now(),
-        },
-      ]);
+    const savedMessages = localStorage.getItem("chatbot-messages");
+    if (!savedMessages || JSON.parse(savedMessages).length === 0) {
+      const welcomeMessage: Message = {
+        id: "welcome",
+        role: "bot",
+        content: "Hi there! I'm your housing assistant. How can I help you today?",
+        timestamp: Date.now(),
+      };
+      setMessages([welcomeMessage]);
     }
-  }, [messages.length, setMessages]);
+  }, []);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("chatbot-messages", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -78,7 +84,10 @@ export const Chatbot = () => {
       timestamp: Date.now(),
     };
     
-    setMessages([...messages, userMessage]);
+    // Add user message to state and localStorage
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    localStorage.setItem("chatbot-messages", JSON.stringify(updatedMessages));
     setInputValue("");
     setIsTyping(true);
     
@@ -94,7 +103,10 @@ export const Chatbot = () => {
         timestamp: Date.now(),
       };
       
-      setMessages(prev => [...prev, botMessage]);
+      // Update messages with bot response
+      const newMessages = [...updatedMessages, botMessage];
+      setMessages(newMessages);
+      localStorage.setItem("chatbot-messages", JSON.stringify(newMessages));
       
       // Handle redirection if needed
       if (response.type === 'redirect' && response.url) {
@@ -110,15 +122,15 @@ export const Chatbot = () => {
       setIsTyping(false);
       
       // Add error message
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-error-${Date.now()}`,
-          role: "bot",
-          content: "I'm having trouble processing your request. Please try again later.",
-          timestamp: Date.now(),
-        },
-      ]);
+      const errorMessage: Message = {
+        id: `bot-error-${Date.now()}`,
+        role: "bot",
+        content: "I'm having trouble processing your request. Please try again later.",
+        timestamp: Date.now(),
+      };
+      const newMessages = [...updatedMessages, errorMessage];
+      setMessages(newMessages);
+      localStorage.setItem("chatbot-messages", JSON.stringify(newMessages));
     }
   };
 
@@ -133,27 +145,27 @@ export const Chatbot = () => {
     <>
       {/* Floating chat button */}
       {!isOpen && (
-        <Button
+        <button
           onClick={handleOpenChat}
-          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg flex items-center justify-center bg-gradient-to-r from-violet-800 to-purple-900 text-white hover:from-violet-700 hover:to-purple-800 transition-all duration-300"
+          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg flex items-center justify-center bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 transition-all duration-300 animate-pulse hover:animate-none hover:scale-110 border border-violet-500/30 shadow-violet-500/20"
           aria-label="Open chat"
         >
           <MessageSquare className="w-6 h-6" />
-        </Button>
+        </button>
       )}
 
       {/* Chat window */}
       <div
         className={cn(
-          "fixed bottom-0 right-0 z-50 w-full sm:w-96 sm:right-6 sm:bottom-6 transition-all duration-300 ease-in-out transform",
+          "fixed bottom-0 right-0 z-50 w-full sm:w-96 sm:right-6 sm:bottom-6 transition-all duration-300 ease-in-out transform backdrop-blur-md",
           isOpen
             ? "translate-y-0 opacity-100"
             : "translate-y-4 opacity-0 pointer-events-none"
         )}
       >
-        <div className="overflow-hidden bg-gray-900/90 border border-violet-500/30 rounded-t-lg sm:rounded-lg shadow-2xl shadow-violet-500/20 flex flex-col h-[500px] max-h-[80vh]">
+        <div className="overflow-hidden bg-gray-900/80 border border-violet-500/30 rounded-t-lg sm:rounded-lg shadow-2xl shadow-violet-500/20 flex flex-col h-[500px] max-h-[80vh]">
           {/* Chat header */}
-          <div className="px-4 py-3 border-b border-violet-500/20 flex items-center justify-between bg-gradient-to-r from-violet-900/90 to-gray-900">
+          <div className="px-4 py-3 border-b border-violet-500/20 flex items-center justify-between bg-gradient-to-r from-violet-900/90 via-fuchsia-900/90 to-gray-900">
             <div className="flex items-center gap-2">
               <BotAvatar />
               <div>
@@ -163,18 +175,17 @@ export const Chatbot = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="secondary"
+            <button
               onClick={handleCloseChat}
               aria-label="Close chat"
-              className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-colors p-2"
+              className="inline-flex items-center justify-center text-violet-200 hover:text-white hover:bg-violet-500/20 rounded-full transition-all duration-300 p-2 border border-violet-500/30 shadow-lg shadow-violet-500/10 hover:scale-105 active:scale-95"
             >
               <X className="h-5 w-5" />
-            </Button>
+            </button>
           </div>
 
           {/* Chat messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900 to-black">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-900/90 via-violet-900/20 to-black">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
@@ -184,7 +195,7 @@ export const Chatbot = () => {
                 <div className="flex space-x-1 p-2">
                   <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
                        style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
+                  <div className="w-2 h-2 bg-fuchsia-500 rounded-full animate-bounce" 
                        style={{ animationDelay: '150ms' }} />
                   <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce" 
                        style={{ animationDelay: '300ms' }} />

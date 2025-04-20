@@ -34,11 +34,12 @@ const FeedbackPage = () => {
     e.preventDefault();
     
     if (!user) {
-      toast({
-        title: "Error",
-        description: "Something went wrong! Please sign in and try again!.",
-        variant: "destructive",
-      })
+      toast(
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">Error</div>
+          <div className="text-sm text-white/70">Something went wrong! Please sign in and try again!</div>
+        </div>
+      );
       return;
     }
     
@@ -60,19 +61,21 @@ const FeedbackPage = () => {
         throw new Error('Failed to submit feedback');
       }
 
-      toast({
-        title: "Error",
-        description: "Success!! Thank you for your feedback!",
-        variant: "destructive",
-      })
+      toast(
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">Success</div>
+          <div className="text-sm text-white/70">Thank you for your feedback!</div>
+        </div>
+      );
       router.push('/');
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit feedback. Please try again later.",
-        variant: "destructive",
-      })
+      toast(
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">Error</div>
+          <div className="text-sm text-white/70">Failed to submit feedback. Please try again later.</div>
+        </div>
+      );
     }
   };
 

@@ -1,23 +1,23 @@
 import React, { createContext, useContext, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import Toast from './Toast';
+import { AnimatePresence, motion } from 'framer-motion';
+import FuturisticToast from '../components/ui/FuturisticToast';
+
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
 
 interface ToastContextType {
-  showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-interface ToastItem {
-  id: number;
-  message: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-}
-
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
   };
@@ -29,10 +29,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-0 right-0 z-50">
-        <AnimatePresence>
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+        <AnimatePresence mode="popLayout">
           {toasts.map((toast) => (
-            <Toast
+            <FuturisticToast
               key={toast.id}
               message={toast.message}
               type={toast.type}

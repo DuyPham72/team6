@@ -45,11 +45,11 @@ const ContactPage = () => {
         throw new Error('Failed to send message');
       }
 
-      toast({ title: "Message sent successfully!", variant: "success" });
+      toast.success("Message sent successfully!");
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({ title: "Failed to send message. Please try again.", variant: "destructive" });
+      toast.error("Failed to send message. Please try again.");
     }
   };
 

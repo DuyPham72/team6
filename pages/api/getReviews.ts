@@ -6,12 +6,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { housingId } = req.query;
       
+      // Debug logging
+      console.log('Fetching reviews with query:', { housingId });
+      
       // Connect to MongoDB
       const client = await clientPromise;
       const db = client.db("uta-housing");
 
+      // First, let's log ALL reviews in the database
+      const allReviews = await db.collection("reviews").find({}).toArray();
+      console.log('ALL REVIEWS IN DATABASE:', allReviews.length);
+      console.log('ALL REVIEWS:', JSON.stringify(allReviews, null, 2));
+      
       // Build the query based on whether housingId is provided
-      const query = housingId ? { housingId: housingId } : {};
+      // Handle both string and number housingId values
+      let query = {};
+      if (housingId) {
+        const housingIdStr = String(housingId);
+        query = {
+          $or: [
+            { housingId: housingIdStr },  // Match string ID
+            { housingId: Number(housingId) }  // Match number ID
+          ]
+        };
+      }
+      
+      // Debug logging
+      console.log('MongoDB query:', query);
 
       // Fetch reviews with all necessary fields
       const reviews = await db.collection("reviews")
@@ -29,6 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           apartmentName: 1
         })
         .toArray();
+      
+      // Debug logging
+      console.log('Found reviews:', reviews.length);
+      console.log('Reviews:', JSON.stringify(reviews, null, 2));
 
       return res.status(200).json({ reviews });
     } catch (error) {

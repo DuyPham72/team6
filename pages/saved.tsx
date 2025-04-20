@@ -4,7 +4,7 @@ import { ArrowRight, Heart, MapPin } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { getLocalSavedListings } from "../lib/utils/localStorage";
-import { useToast } from "../Misc/ui/use-toast";
+import { useToast } from "@/lib/use-toast";
 import Navbar from "./components/Navbar";
 import StarRating from "./components/StarRating";
 
@@ -53,19 +53,11 @@ export default function SavedPage() {
       }
       setSavedListings(listings);
       if (listings.length === 0) {
-        toast({
-          title: "No Saved Listings",
-          description: "You haven't saved any listings yet.",
-          variant: "default",
-        });
+        toast.info("You haven't saved any listings yet.");
       }
     } catch (error) {
       console.error('Error fetching local saved listings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load saved listings!",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch local saved listings. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -76,46 +68,83 @@ export default function SavedPage() {
       const response = await fetch("/api/saved");
       if (response.ok) {
         const data = await response.json();
-        console.log("Saved listings data:", data);
+        console.log("Raw saved listings response:", data);
         
-        // Fetch full listing details for each saved listing
+        if (!Array.isArray(data) || data.length === 0) {
+          console.log("No saved listings found");
+          setSavedListings([]);
+          setLoading(false);
+          return;
+        }
+
+        // Log each saved listing ID
+        data.forEach((item: { listingId: string }) => {
+          console.log("Processing saved listing ID:", item.listingId);
+        });
+
+        // Create a Set to track unique listing IDs
+        const uniqueListingIds = new Set(data.map((item: { listingId: string }) => item.listingId));
+        console.log("Unique listing IDs to fetch:", Array.from(uniqueListingIds));
+
+        if (uniqueListingIds.size === 0) {
+          console.log("No unique listing IDs found");
+          setSavedListings([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Fetch full listing details for each unique saved listing
         const listingDetails = await Promise.all(
-          data.map(async (item: { listingId: string }) => {
+          Array.from(uniqueListingIds).map(async (listingId) => {
             try {
-              const listingResponse = await fetch(`/api/housing/${item.listingId}`);
+              console.log(`Fetching details for listing ${listingId}`);
+              const listingResponse = await fetch(`/api/housing/${listingId}`);
               if (listingResponse.ok) {
                 const listing = await listingResponse.json();
-                console.log("Fetched listing:", listing);
+                if (!listing) {
+                  console.log(`Listing ${listingId} not found`);
+                  return null;
+                }
+                console.log(`Successfully fetched listing ${listingId}:`, listing);
                 return listing;
               } else {
-                console.error(`Failed to fetch listing ${item.listingId}:`, await listingResponse.text());
+                console.error(`Failed to fetch listing ${listingId}:`, await listingResponse.text());
                 return null;
               }
             } catch (error) {
-              console.error(`Error fetching listing ${item.listingId}:`, error);
+              console.error(`Error fetching listing ${listingId}:`, error);
               return null;
             }
           })
         );
         
+        // Filter out any null responses and deduplicate
         const validListings = listingDetails.filter(Boolean);
-        console.log("Valid listings:", validListings);
-        setSavedListings(validListings);
+        console.log("Valid listings before deduplication:", validListings);
+        
+        if (validListings.length === 0) {
+          toast.info("No saved listings found.");
+          setSavedListings([]);
+          setLoading(false);
+          return;
+        }
+
+        // Ensure no duplicates in the final state and only include listings that exist in the database
+        const uniqueListings = Array.from(
+          new Map(validListings.map(listing => [listing.id, listing])).values()
+        ).filter(listing => uniqueListingIds.has(listing.id));
+        
+        console.log("Final unique listings to display:", uniqueListings);
+        setSavedListings(uniqueListings);
       } else {
         console.error("Failed to fetch saved listings:", await response.text());
-        toast({
-          title: "Error",
-          description: "Failed to load saved listings!",
-          variant: "destructive",
-        })
+        toast.error("Failed to fetch saved listings. Please try again later.");
+        setSavedListings([]);
       }
     } catch (error) {
       console.error("Error fetching saved listings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to saved listings! Please try again later.",
-        variant: "destructive",
-      })
+      toast.error("Failed to fetch saved listings. Please try again later.");
+      setSavedListings([]);
     } finally {
       setLoading(false);
     }
@@ -134,32 +163,20 @@ export default function SavedPage() {
 
         if (response.ok) {
           setSavedListings(savedListings.filter((listing) => listing.id !== listingId));
-          toast({
-            title: "Error",
-            description: "Listing removed from saved!",
-            variant: "destructive",
-          })
+          toast.success("Listing removed from saved!");
         } else {
           throw new Error("Failed to remove listing");
         }
       } catch (error) {
         console.error("Error removing saved listing:", error);
-        toast({
-          title: "Error",
-          description: "Failed to remove listing! Please try again later.",
-          variant: "destructive",
-        })
+        toast.error("Failed to remove listing. Please try again later.");
       }
     } else {
       // For non-authenticated users, remove from local storage
       const localSavedIds = getLocalSavedListings();
       localStorage.setItem('saved_listings', JSON.stringify(localSavedIds.filter(id => id !== listingId)));
       setSavedListings(savedListings.filter((listing) => listing.id !== listingId));
-      toast({
-        title: "Error",
-        description: "Listing removed from saved!",
-        variant: "destructive",
-      })
+      toast.success("Listing removed from saved!");
     }
   };
 

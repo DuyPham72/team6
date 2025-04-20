@@ -14,7 +14,7 @@ interface EditReviewFormProps {
   initialRating: number;
   initialIsAnonymous: boolean;
   onClose: () => void;
-  onReviewUpdated?: () => void;
+  onReviewUpdated?: (updatedReview: any) => void;
 }
 
 const EditReviewForm = ({ 
@@ -33,30 +33,23 @@ const EditReviewForm = ({
   const [isAnonymous, setIsAnonymous] = useState(initialIsAnonymous);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!isSignedIn) {
-      toast.error("Please sign in to update your review");
+      setError("You must be signed in to edit a review");
       return;
     }
-    
-    if (!comment) {
-      toast.error("Please add a comment to your review");
+    if (!comment.trim()) {
+      setError("Please enter a comment");
       return;
     }
-    
-    setIsSubmitting(true);
-    
     try {
-      // Get user information from Clerk
-      const name = isAnonymous ? "Anonymous" : user?.fullName || user?.firstName || "User";
-      
-      const response = await fetch('/api/reviews', {
-        method: 'PUT',
+      const response = await fetch("/api/reviews", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           reviewId,
@@ -65,25 +58,20 @@ const EditReviewForm = ({
           isAnonymous,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update review');
+        throw new Error(errorData.error || "Failed to update review");
       }
-      
-      toast.success("Review updated successfully!");
-      
-      // Call the callback to refresh reviews if provided
+
+      const updatedReview = await response.json();
       if (onReviewUpdated) {
-        onReviewUpdated();
+        onReviewUpdated(updatedReview);
       }
-      
       onClose();
     } catch (error) {
-      console.error('Error updating review:', error);
-      toast.error(error instanceof Error ? error.message : "Failed to update review. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Error updating review:", error);
+      setError(error instanceof Error ? error.message : "Failed to update review");
     }
   };
 

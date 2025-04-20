@@ -1,4 +1,4 @@
-import { parseHousingQuery } from "../../../lib/services/housingService";
+import { parseHousingQuery } from "../../lib/services/housingService";
 
 // Simple response generator based on keywords
 // In a real application, this would be connected to an actual AI service

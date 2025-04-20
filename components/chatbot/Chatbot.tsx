@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { MessageSquare, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocalStorage } from "../../../lib/use-local-storage";
+import { useLocalStorage } from "../../lib/use-local-storage";
 import { Button } from "../../components/ui/button";
 import { BotAvatar } from "./BotAvatar";
 import { processUserMessage } from "./chatbotUtils";

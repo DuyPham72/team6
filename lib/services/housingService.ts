@@ -21,7 +21,7 @@ export const housingListings: HousingListing[] = [
       title: "Arlington Hall",
       description: "Arlington, TX",
       price: 800,
-      location: "Arlington, TX",
+      location: "600 Spaniolo Dr, Arlington, TX 76010",
       rating: 4.5,
       image: "/Assets/Arlington_Hall.png",
       amenities: ["Wi-Fi", "Fitness Center", "Pool"],

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Info, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
-import { useToast } from '../../Misc/ui/ToastContext';
+import { toast } from 'sonner';
 
 interface FeedbackFormProps {
   apartmentName: string;
@@ -19,7 +19,6 @@ const Feedback: React.FC<FeedbackFormProps> = ({
 }) => {
   const router = useRouter();
   const { user } = useUser();
-  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     type: 'price',
     details: '',
@@ -41,7 +40,7 @@ const Feedback: React.FC<FeedbackFormProps> = ({
     e.preventDefault();
     
     if (!user) {
-      showToast("Please sign in to submit feedback", "warning");
+      toast.warning("Please sign in to submit feedback");
       return;
     }
     
@@ -65,11 +64,11 @@ const Feedback: React.FC<FeedbackFormProps> = ({
         throw new Error('Failed to submit feedback');
       }
 
-      showToast("Thank you for helping us keep our information up to date", "success");
+      toast.success("Feedback submitted successfully!");
       handleClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      showToast("Failed to submit feedback. Please try again.", "error");
+      toast.error("Failed to submit feedback. Please try again.");
     }
   };
 

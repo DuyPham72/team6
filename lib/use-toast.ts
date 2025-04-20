@@ -1,54 +1,27 @@
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast, Toaster } from 'sonner';
 
-type ToastProps = {
-  title?: string;
-  description?: string;
-  variant?: "default" | "destructive" | "success" | "warning" | "info";
-  duration?: number;
-  action?: {
-    label: string;
-    onClick: () => void;
+export const toast = sonnerToast;
+
+export function useToast() {
+  return {
+    showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+      switch (type) {
+        case 'success':
+          sonnerToast.success(message);
+          break;
+        case 'error':
+          sonnerToast.error(message);
+          break;
+        case 'warning':
+          sonnerToast.warning(message);
+          break;
+        case 'info':
+          sonnerToast.info(message);
+          break;
+      }
+    },
+    toast: sonnerToast,
   };
-};
-
-export function toast({
-  title,
-  description,
-  variant = "default",
-  duration = 5000,
-  action,
-}: ToastProps) {
-  const options: Record<string, any> = {
-    duration,
-    className: variant === "destructive" ? "bg-destructive text-destructive-foreground" : "",
-  };
-
-  if (action) {
-    options.action = {
-      label: action.label,
-      onClick: action.onClick,
-    };
-  }
-
-  const toastMethod = variant === "destructive"
-    ? sonnerToast.error
-    : variant === "success"
-    ? sonnerToast.success
-    : variant === "warning"
-    ? sonnerToast.warning
-    : variant === "info"
-    ? sonnerToast.info
-    : sonnerToast;
-
-  return toastMethod(title, {
-    description,
-    ...options,
-  });
 }
 
-export const useToast = () => {
-  return {
-    toast,
-    dismiss: sonnerToast.dismiss,
-  };
-};
+export { Toaster }; 
