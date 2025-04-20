@@ -44,7 +44,7 @@ const HeroSection = () => {
     toast(
       <div className="flex flex-col gap-1">
         <div className="font-medium">Exploring listings...</div>
-        <div className="text-sm text-white/70">Loading available properties near UTA</div>
+        <div className="text-sm text-purple-800/70">Loading available properties near UTA</div>
       </div>
     );
     router.push("/components/explore");
