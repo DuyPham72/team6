@@ -7,8 +7,6 @@ import { BotAvatar } from "../../Misc/chatbot/BotAvatar";
 import { processUserMessage } from "../../Misc/chatbot/chatbotUtils";
 import { ChatInput } from "../../Misc/chatbot/ChatInput";
 import { ChatMessage } from "../../Misc/chatbot/ChatMessage";
-import { Button } from "../../Misc/ui/button";
-import { useToast } from "../../lib/use-toast";
 
 export type Message = {
   id: string;
@@ -25,7 +23,6 @@ export const Chatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { toast } = useToast();
   
   // Initial greeting message if no messages exist
   const handleOpenChat = () => {
