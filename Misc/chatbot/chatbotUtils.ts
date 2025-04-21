@@ -119,9 +119,9 @@ const responseCategories: ResponseCategory[] = [
 
 const fallbackResponses = [
   "I'm not sure I understand completely. Try asking about apartments, budget, location, or amenities.",
-  "I'd like to help! Could you provide more details about your housing needs?",
-  "I want to make sure I assist you properly. Could you elaborate on what you're looking for?",
-  "You can ask me things like 'show me apartments near campus' or 'find pet-friendly housing under $1200'.",
+  "I'm here to help with housing, but I didn’t understand that. Could you ask something like 'show me apartments under $1000'?",
+  "I didn’t catch that. Are you looking for an apartment, residence hall, or something else?",
+  "Could you clarify if you’re asking about prices, locations, amenities, or something else related to housing?",
 ];
 
 // Check if message is asking to see listings with specific criteria
