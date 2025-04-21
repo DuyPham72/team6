@@ -118,10 +118,11 @@ const responseCategories: ResponseCategory[] = [
 ];
 
 const fallbackResponses = [
-  "I'm not sure I understand completely. Could you tell me more about what you're looking for in housing?",
+  "I'm not sure I understand completely. Try asking about apartments, budget, location, or amenities.",
   "I'd like to help! Could you provide more details about your housing needs?",
   "I want to make sure I assist you properly. Could you elaborate on what you're looking for?",
   "Thank you for your message. To better help you, could you share more specific details about your housing requirements?",
+  "You can ask me things like 'show me apartments near campus' or 'find pet-friendly housing under $1200'.",
 ];
 
 // Check if message is asking to see listings with specific criteria
@@ -147,6 +148,14 @@ const keywordResponses: Record<string, string> = {
   "help|assist": "I can help you find housing options based on price, location, and type. Just ask me something like 'show me apartments under $800' or 'find me a residence hall'.",
   "thanks|thank you": "You're welcome! Let me know if you need anything else.",
   "bye|goodbye": "Goodbye! Feel free to come back if you need more help finding housing."
+};
+
+// Check if the user input is too short or nonsensical
+const isNonsenseInput = (text: string): boolean => {
+  const cleaned = text.trim().replace(/[^a-zA-Z0-9\s]/g, "");
+  if (cleaned.length === 0) return true;
+  if (cleaned.split(/\s+/).length <= 2 && cleaned.length < 10) return true;
+  return false;
 };
 
 export const processUserMessage = (message: string): ChatbotResponse => {
@@ -188,7 +197,15 @@ export const processUserMessage = (message: string): ChatbotResponse => {
     }
   }
 
-  // If no keywords match, return a fallback response
+ // Handle invalid/nonsense input
+  if (isNonsenseInput(message)) {
+    return {
+      type: 'message',
+      content: "Hmm, I didn't quite catch that. Try asking something like 'find me an apartment under $1000' or 'do you allow pets?'"
+    };
+  }
+
+  // No match found, but message seems valid — return helpful fallback
   return { 
     type: 'message', 
     content: fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)] 

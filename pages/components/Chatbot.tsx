@@ -28,18 +28,26 @@ export const Chatbot = () => {
   const { toast } = useToast();
   
   // Initial greeting message if no messages exist
-  useEffect(() => {
-    const savedMessages = localStorage.getItem("chatbot-messages");
-    if (!savedMessages || JSON.parse(savedMessages).length === 0) {
+  const handleOpenChat = () => {
+    if (
+      messages.length === 0 ||
+      messages[messages.length - 1].id?.startsWith("welcome") === false
+    ) {
       const welcomeMessage: Message = {
-        id: "welcome",
+        id: `welcome-${Date.now()}`,
         role: "bot",
         content: "Hi there! I'm your housing assistant. How can I help you today?",
         timestamp: Date.now(),
       };
-      setMessages([welcomeMessage]);
+  
+      const updatedMessages = [...messages, welcomeMessage];
+      setMessages(updatedMessages);
+      localStorage.setItem("chatbot-messages", JSON.stringify(updatedMessages));
     }
-  }, []);
+  
+    setIsOpen(true);
+  };
+  
 
   // Save messages to localStorage whenever they change
   useEffect(() => {
@@ -64,10 +72,6 @@ export const Chatbot = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleOpenChat = () => {
-    setIsOpen(true);
   };
 
   const handleCloseChat = () => {
