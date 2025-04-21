@@ -121,7 +121,6 @@ const fallbackResponses = [
   "I'm not sure I understand completely. Try asking about apartments, budget, location, or amenities.",
   "I'd like to help! Could you provide more details about your housing needs?",
   "I want to make sure I assist you properly. Could you elaborate on what you're looking for?",
-  "Thank you for your message. To better help you, could you share more specific details about your housing requirements?",
   "You can ask me things like 'show me apartments near campus' or 'find pet-friendly housing under $1200'.",
 ];
 
