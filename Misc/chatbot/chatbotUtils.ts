@@ -1,4 +1,3 @@
-
 // Simple response generator based on keywords
 // In a real application, this would be connected to an actual AI service
 
@@ -119,27 +118,238 @@ const responseCategories: ResponseCategory[] = [
 
 const fallbackResponses = [
   "I'm not sure I understand completely. Try asking about apartments, budget, location, or amenities.",
-  "I'm here to help with housing, but I didn’t understand that. Could you ask something like 'show me apartments under $1000'?",
-  "I didn’t catch that. Are you looking for an apartment, residence hall, or something else?",
-  "Could you clarify if you’re asking about prices, locations, amenities, or something else related to housing?",
+  "I'm here to help with housing, but I didn't understand that. Could you ask something like 'show me apartments under $1000'?",
+  "I didn't catch that. Are you looking for an apartment, residence hall, or something else?",
+  "Could you clarify if you're asking about prices, locations, amenities, or something else related to housing?",
 ];
+
+// Define query types for better categorization
+type QueryType = 
+  | 'housing_search' 
+  | 'residence_hall_info' 
+  | 'amenity_info' 
+  | 'cost_info' 
+  | 'pet_policy' 
+  | 'comparison' 
+  | 'review_info' 
+  | 'general_question';
+
+// Define a more structured query pattern system
+interface QueryPattern {
+  type: QueryType;
+  patterns: RegExp[];
+  priority: number; // Higher priority patterns are checked first
+}
+
+const queryPatterns: QueryPattern[] = [
+  {
+    type: 'housing_search',
+    priority: 1,
+    patterns: [
+      /show me .*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /find .*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*under.?\$?\d+/i,
+      /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*\$\d+/i,
+      /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*\d+ bed/i,
+      /.*(available|affordable).*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /\d+ bedroom.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /looking for.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /need.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /want.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
+      /.*under.?\$?\d+/i,
+      /.*\$\d+/i,
+      /.*\d+ per month/i,
+      /.*\d+ a month/i,
+      /.*with (pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*has (pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*featuring (pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*that has (pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*with a (pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*best reviews/i,
+      /.*good reviews/i,
+      /.*highest rated/i,
+      /.*top rated/i,
+      /.*highly rated/i,
+      /.*with.*reviews/i,
+    ]
+  },
+  {
+    type: 'residence_hall_info',
+    priority: 2,
+    patterns: [
+      /tell me about (residence hall|dorm|dormitory)/i,
+      /what.*(residence hall|dorm|dormitory)/i,
+      /.*(residence hall|dorm|dormitory).*amenities/i,
+      /.*(residence hall|dorm|dormitory).*cost/i,
+      /.*(residence hall|dorm|dormitory).*price/i,
+      /.*(residence hall|dorm|dormitory).*pet/i,
+      /.*(residence hall|dorm|dormitory).*room/i,
+      /.*(residence hall|dorm|dormitory).*meal/i,
+      /.*(residence hall|dorm|dormitory).*plan/i,
+    ]
+  },
+  {
+    type: 'amenity_info',
+    priority: 2,
+    patterns: [
+      /what amenities/i,
+      /.*amenities.*have/i,
+      /.*features.*have/i,
+      /.*include.*(pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*offer.*(pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+      /.*provide.*(pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i,
+    ]
+  },
+  {
+    type: 'cost_info',
+    priority: 2,
+    patterns: [
+      /how much.*cost/i,
+      /how much.*price/i,
+      /what.*cost/i,
+      /what.*price/i,
+      /.*budget/i,
+      /.*affordable/i,
+      /.*expensive/i,
+      /.*cheap/i,
+      /.*cost range/i,
+      /.*price range/i,
+    ]
+  },
+  {
+    type: 'pet_policy',
+    priority: 2,
+    patterns: [
+      /.*pet friendly/i,
+      /.*allow pets/i,
+      /.*accept pets/i,
+      /.*pet policy/i,
+      /.*pet deposit/i,
+      /.*pet fee/i,
+      /.*pet rent/i,
+      /.*dog/i,
+      /.*cat/i,
+      /do.*(apartment|house|home|property|rental|housing|residence hall|dorm).*allow pets/i,
+      /do.*(apartment|house|home|property|rental|housing|residence hall|dorm).*accept pets/i,
+      /do.*(apartment|house|home|property|rental|housing|residence hall|dorm).*pet friendly/i,
+      /.*(apartment|house|home|property|rental|housing|residence hall|dorm).*pet/i,
+      /.*pet.*(apartment|house|home|property|rental|housing|residence hall|dorm)/i,
+    ]
+  },
+  {
+    type: 'comparison',
+    priority: 3,
+    patterns: [
+      /.*comparing.*(apartment|house|home|property|rental|housing)/i,
+      /.*compare.*(apartment|house|home|property|rental|housing)/i,
+      /.*comparison.*(apartment|house|home|property|rental|housing)/i,
+      /.*see.*comparison/i,
+      /.*show.*comparison/i,
+      /.*view.*comparison/i,
+      /.*compare.*options/i,
+      /.*compare.*places/i,
+      /.*compare.*properties/i,
+    ]
+  },
+  {
+    type: 'review_info',
+    priority: 2,
+    patterns: [
+      /.*best reviews/i,
+      /.*good reviews/i,
+      /.*highest rated/i,
+      /.*top rated/i,
+      /.*highly rated/i,
+      /.*with.*reviews/i,
+      /.*rating/i,
+      /.*stars/i,
+      /.*feedback/i,
+      /.*testimonials/i,
+      /which.*best/i,
+      /which.*good/i,
+      /which.*highest/i,
+      /which.*top/i,
+      /which.*highly/i,
+      /which.*rated/i,
+      /which.*reviews/i,
+      /which.*feedback/i,
+      /which.*testimonials/i,
+      /which.*stars/i,
+    ]
+  },
+  {
+    type: 'general_question',
+    priority: 4,
+    patterns: [
+      /.*how do i/i,
+      /.*what is/i,
+      /.*what are/i,
+      /.*when can/i,
+      /.*where is/i,
+      /.*why is/i,
+      /.*can i/i,
+      /.*do you/i,
+      /.*help me/i,
+      /.*explain/i,
+    ]
+  }
+];
+
+// Enhanced function to determine query type
+const determineQueryType = (message: string): QueryType | null => {
+  // Sort patterns by priority (higher priority first)
+  const sortedPatterns = [...queryPatterns].sort((a, b) => b.priority - a.priority);
+  
+  for (const queryPattern of sortedPatterns) {
+    if (queryPattern.patterns.some(pattern => pattern.test(message))) {
+      return queryPattern.type;
+    }
+  }
+  
+  return null;
+};
 
 // Check if message is asking to see listings with specific criteria
 const isHousingSearchQuery = (message: string): boolean => {
-  const searchPatterns = [
-    /show me .*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /find .*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*under.?\$?\d+/i,
-    /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*\$\d+/i,
-    /.*(house|home|apartment|property|rental|housing|residence hall|dorm).*\d+ bed/i,
-    /.*(available|affordable).*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /\d+ bedroom.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /looking for.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /need.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-    /want.*(house|home|apartment|property|rental|housing|residence hall|dorm)/i,
-  ];
+  const queryType = determineQueryType(message);
+  return queryType === 'housing_search';
+};
+
+// Extract query parameters for more targeted responses
+const extractQueryParameters = (message: string): Record<string, any> => {
+  const params: Record<string, any> = {};
   
-  return searchPatterns.some(pattern => pattern.test(message));
+  // Extract price information
+  const priceMatch = message.match(/\$?(\d+)(?:\s*(?:per|a)\s*month)?/i);
+  if (priceMatch) {
+    params.maxPrice = parseInt(priceMatch[1]);
+  }
+  
+  // Extract housing type
+  const housingTypeMatch = message.match(/(apartment|house|home|property|rental|housing|residence hall|dorm)/i);
+  if (housingTypeMatch) {
+    params.housingType = housingTypeMatch[1].toLowerCase();
+  }
+  
+  // Extract amenities
+  const amenityMatch = message.match(/(pool|gym|parking|laundry|washer|dryer|dishwasher|balcony|patio|garage|storage)/i);
+  if (amenityMatch) {
+    params.amenity = amenityMatch[1].toLowerCase();
+  }
+  
+  // Extract bedroom count
+  const bedroomMatch = message.match(/(\d+)\s*(?:bed|bedroom|br)/i);
+  if (bedroomMatch) {
+    params.bedrooms = parseInt(bedroomMatch[1]);
+  }
+  
+  // Extract review criteria
+  if (message.match(/(best|good|highest|top|highly)\s*rated/i) || 
+      message.match(/(best|good)\s*reviews/i)) {
+    params.reviewCriteria = 'high';
+  }
+  
+  return params;
 };
 
 const keywordResponses: Record<string, string> = {
@@ -158,24 +368,50 @@ const isNonsenseInput = (text: string): boolean => {
 };
 
 export const processUserMessage = (message: string): ChatbotResponse => {
+  // Determine query type for more targeted responses
+  const queryType = determineQueryType(message);
+  
+  // Handle review queries specifically
+  if (queryType === 'review_info') {
+    return {
+      type: 'redirect',
+      content: "I'll show you housing options with the best reviews. You can sort by rating on the explore page.",
+      url: '/components/explore?sortBy=rating'
+    };
+  }
+  
+  // Handle pet policy queries specifically
+  if (queryType === 'pet_policy') {
+    return {
+      type: 'redirect',
+      content: "I'll show you housing options with pet policies. You can filter for pet-friendly properties on the explore page.",
+      url: '/components/explore?amenity=pet-friendly'
+    };
+  }
+  
   // Check if it's a housing search query
   if (isHousingSearchQuery(message)) {
-    const priceMatch = message.match(/\$?(\d+)/);
-    const placeMatch = message.match(/(apartment|residence hall|dorm|house)/i);
-    
+    const params = extractQueryParameters(message);
     const queryParams = new URLSearchParams();
     
-    if (priceMatch) {
-      queryParams.append('maxPrice', priceMatch[1]);
+    if (params.maxPrice) {
+      queryParams.append('maxPrice', params.maxPrice.toString());
     }
     
-    if (placeMatch) {
-      const placeType = placeMatch[1].toLowerCase();
-      if (placeType === 'apartment') {
-        queryParams.append('placeType', 'Apartment');
-      } else if (placeType === 'residence hall' || placeType === 'dorm') {
-        queryParams.append('placeType', 'Residence Hall');
-      }
+    if (params.housingType) {
+      queryParams.append('placeType', params.housingType);
+    }
+    
+    if (params.amenity) {
+      queryParams.append('amenity', params.amenity);
+    }
+    
+    if (params.bedrooms) {
+      queryParams.append('bedrooms', params.bedrooms.toString());
+    }
+    
+    if (params.reviewCriteria) {
+      queryParams.append('reviewCriteria', params.reviewCriteria);
     }
     
     const queryString = queryParams.toString();
@@ -183,8 +419,24 @@ export const processUserMessage = (message: string): ChatbotResponse => {
     
     return {
       type: 'redirect',
-      content: `I'll help you find housing options${priceMatch ? ` under $${priceMatch[1]}` : ''}${placeMatch ? ` that are ${placeMatch[1]}s` : ''}.`,
+      content: `I'll help you find housing options${params.maxPrice ? ` under $${params.maxPrice}` : ''}${params.housingType ? ` that are ${params.housingType}s` : ''}${params.amenity ? ` with a ${params.amenity}` : ''}${params.bedrooms ? ` with ${params.bedrooms} bedroom${params.bedrooms > 1 ? 's' : ''}` : ''}${params.reviewCriteria ? ' with good reviews' : ''}.`,
       url: redirectUrl
+    };
+  }
+
+  if (queryType === 'residence_hall_info') {
+    return {
+      type: 'redirect',
+      content: "I'll show you information about our residence halls.",
+      url: '/components/explore?placeType=Residence Hall'
+    };
+  }
+  
+  if (queryType === 'comparison') {
+    return {
+      type: 'redirect',
+      content: "I'll take you to the comparison page where you can compare different housing options.",
+      url: '/components/explore?view=comparison'
     };
   }
 
@@ -196,7 +448,7 @@ export const processUserMessage = (message: string): ChatbotResponse => {
     }
   }
 
- // Handle invalid/nonsense input
+  // Handle invalid/nonsense input
   if (isNonsenseInput(message)) {
     return {
       type: 'message',
